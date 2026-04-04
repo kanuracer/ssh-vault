@@ -3,6 +3,9 @@
 SSH Vault is a small PowerShell WinForms launcher for SSH hosts from your local OpenSSH config.
 The project originated from the fact that I use Bitwarden as an SSH key storage, and I found it very annoying to type ssh user@ip into the command prompt every time.
 
+![__PreviewImage](https://github.com/kanuracer/ssh-vault/blob/main/media/1.png)
+![__PreviewImage](https://github.com/kanuracer/ssh-vault/blob/main/media/new-host.png) ![__PreviewImage](https://github.com/kanuracer/ssh-vault/blob/main/media/tag-managment.png)
+
 ## Features
 
 - Reads hosts from `~/.ssh/config`
