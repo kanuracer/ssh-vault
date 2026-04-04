@@ -55,6 +55,8 @@ Host my-server
     Port 22
 ```
 
+If it doesn't exist, a config file will be created.
+
 ## Local State
 
 On first start, SSH Vault automatically creates these files next to `ssh-vault.ps1`:
