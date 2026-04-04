@@ -21,7 +21,6 @@ The project originated from the fact that I use Bitwarden as an SSH key storage,
 - Host tags/categories with reusable tag values
 - Persistent tag filter
 - Persistent window size and position
-- Info page with app metadata and repository link
 - Built-in update check and self-update from GitHub
 
 ## Requirements
