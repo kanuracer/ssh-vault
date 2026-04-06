@@ -33,6 +33,7 @@ $Translations = @{
         Hosts = "Hosts"
         Info = "Info"
         Settings = "Einstellungen"
+        RestartRequiredNote = "Hinweis: Nach Sprachwechsel App bitte neu starten."
         Tags = "Tags"
         Filter = "Filter"
         NewHost = "+ Host"
@@ -53,6 +54,7 @@ $Translations = @{
         AuthorLabel = "Autor"
         RepoLabel = "Repository"
         UpdateSection = "Updates"
+        Untagged = "Ohne Tag"
         CheckUpdate = "Update pruefen"
         Update = "Update"
         UpdateChecking = "Pruefe Update..."
@@ -104,6 +106,7 @@ $Translations = @{
         Hosts = "Hosts"
         Info = "Info"
         Settings = "Settings"
+        RestartRequiredNote = "Note: Restart the app after changing the language."
         Tags = "Tags"
         Filter = "Filter"
         NewHost = "+ Host"
@@ -124,6 +127,7 @@ $Translations = @{
         AuthorLabel = "Author"
         RepoLabel = "Repository"
         UpdateSection = "Updates"
+        Untagged = "Untagged"
         CheckUpdate = "Check Update"
         Update = "Update"
         UpdateChecking = "Checking for updates..."
@@ -1475,8 +1479,8 @@ $settingsTabButton.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 9)
 $settingsTabButton.Cursor = [System.Windows.Forms.Cursors]::Hand
 
 [void]$tabNavPanel.Controls.Add($hostsTabButton)
-[void]$tabNavPanel.Controls.Add($infoTabButton)
 [void]$tabNavPanel.Controls.Add($settingsTabButton)
+[void]$tabNavPanel.Controls.Add($infoTabButton)
 
 $hostPanel = New-Object System.Windows.Forms.Panel
 $hostPanel.Dock = "Fill"
@@ -1519,8 +1523,9 @@ $infoRepoLabel.ForeColor = $FgMuted
 $infoRepoLabel.Text = "Repo:"
 
 $infoRepoLink = New-Object System.Windows.Forms.LinkLabel
-$infoRepoLink.AutoSize = $true
-$infoRepoLink.Location = New-Object System.Drawing.Point(52, 102)
+$infoRepoLink.AutoSize = $false
+$infoRepoLink.Location = New-Object System.Drawing.Point(2, 126)
+$infoRepoLink.Size = New-Object System.Drawing.Size(520, 24)
 $infoRepoLink.Font = New-Object System.Drawing.Font("Segoe UI", 10)
 $infoRepoLink.LinkColor = $Accent
 $infoRepoLink.ActiveLinkColor = $FgMain
@@ -1576,49 +1581,22 @@ $null = $sortCombo.Items.Add([PSCustomObject]@{ Text = ""; Value = "tag" })
 $sortCombo.DisplayMember = "Text"
 $sortCombo.ValueMember = "Value"
 
-$settingsAppInfoTitle = New-Object System.Windows.Forms.Label
-$settingsAppInfoTitle.AutoSize = $true
-$settingsAppInfoTitle.Location = New-Object System.Drawing.Point(2, 132)
-$settingsAppInfoTitle.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 12)
-$settingsAppInfoTitle.ForeColor = $FgMain
-
-$settingsVersion = New-Object System.Windows.Forms.Label
-$settingsVersion.AutoSize = $true
-$settingsVersion.Location = New-Object System.Drawing.Point(2, 164)
-$settingsVersion.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-$settingsVersion.ForeColor = $FgMuted
-
-$settingsAuthor = New-Object System.Windows.Forms.Label
-$settingsAuthor.AutoSize = $true
-$settingsAuthor.Location = New-Object System.Drawing.Point(2, 192)
-$settingsAuthor.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-$settingsAuthor.ForeColor = $FgMuted
-
-$settingsRepoLabel = New-Object System.Windows.Forms.Label
-$settingsRepoLabel.AutoSize = $true
-$settingsRepoLabel.Location = New-Object System.Drawing.Point(2, 220)
-$settingsRepoLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-$settingsRepoLabel.ForeColor = $FgMuted
-
-$settingsRepoLink = New-Object System.Windows.Forms.LinkLabel
-$settingsRepoLink.AutoSize = $true
-$settingsRepoLink.Location = New-Object System.Drawing.Point(94, 220)
-$settingsRepoLink.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-$settingsRepoLink.LinkColor = $Accent
-$settingsRepoLink.ActiveLinkColor = $FgMain
-$settingsRepoLink.VisitedLinkColor = $Accent
-$settingsRepoLink.Text = $GitHubRepoUrl
-$settingsRepoLink.Add_LinkClicked({ Start-Process $GitHubRepoUrl })
+$languageRestartNotice = New-Object System.Windows.Forms.Label
+$languageRestartNotice.AutoSize = $false
+$languageRestartNotice.Location = New-Object System.Drawing.Point(180, 112)
+$languageRestartNotice.Size = New-Object System.Drawing.Size(360, 38)
+$languageRestartNotice.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+$languageRestartNotice.ForeColor = $FgMuted
 
 $settingsUpdateTitle = New-Object System.Windows.Forms.Label
 $settingsUpdateTitle.AutoSize = $true
-$settingsUpdateTitle.Location = New-Object System.Drawing.Point(2, 264)
+$settingsUpdateTitle.Location = New-Object System.Drawing.Point(2, 176)
 $settingsUpdateTitle.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 12)
 $settingsUpdateTitle.ForeColor = $FgMain
 
 $infoUpdateStatus = New-Object System.Windows.Forms.Label
 $infoUpdateStatus.AutoSize = $true
-$infoUpdateStatus.Location = New-Object System.Drawing.Point(2, 296)
+$infoUpdateStatus.Location = New-Object System.Drawing.Point(2, 208)
 $infoUpdateStatus.Font = New-Object System.Drawing.Font("Segoe UI", 10)
 $infoUpdateStatus.ForeColor = $FgMuted
 $infoUpdateStatus.Text = "Version"
@@ -1628,7 +1606,7 @@ $settingsActions.AutoSize = $true
 $settingsActions.AutoSizeMode = "GrowAndShrink"
 $settingsActions.WrapContents = $true
 $settingsActions.FlowDirection = "LeftToRight"
-$settingsActions.Location = New-Object System.Drawing.Point(0, 330)
+$settingsActions.Location = New-Object System.Drawing.Point(0, 242)
 $settingsActions.BackColor = $BgMain
 
 $checkUpdateButton = New-UiButton -Text "Check"
@@ -1652,11 +1630,7 @@ $settingsPanel.Controls.Add($languageLabel)
 $settingsPanel.Controls.Add($languageCombo)
 $settingsPanel.Controls.Add($sortLabel)
 $settingsPanel.Controls.Add($sortCombo)
-$settingsPanel.Controls.Add($settingsAppInfoTitle)
-$settingsPanel.Controls.Add($settingsVersion)
-$settingsPanel.Controls.Add($settingsAuthor)
-$settingsPanel.Controls.Add($settingsRepoLabel)
-$settingsPanel.Controls.Add($settingsRepoLink)
+$settingsPanel.Controls.Add($languageRestartNotice)
 $settingsPanel.Controls.Add($settingsUpdateTitle)
 $settingsPanel.Controls.Add($infoUpdateStatus)
 $settingsPanel.Controls.Add($settingsActions)
@@ -1726,10 +1700,7 @@ function Update-Language {
     $settingsTitle.Text = T "SettingsTitle"
     $languageLabel.Text = T "LanguageLabel"
     $sortLabel.Text = T "SortLabel"
-    $settingsAppInfoTitle.Text = T "AppInfoTitle"
-    $settingsVersion.Text = "{0}: v{1}" -f (T "VersionLabel"), $AppVersion
-    $settingsAuthor.Text = "{0}: {1}" -f (T "AuthorLabel"), $AppAuthor
-    $settingsRepoLabel.Text = "{0}:" -f (T "RepoLabel")
+    $languageRestartNotice.Text = T "RestartRequiredNote"
     $settingsUpdateTitle.Text = T "UpdateSection"
     $checkUpdateButton.Text = T "CheckUpdate"
     $updateButton.Text = T "Update"
@@ -1755,51 +1726,127 @@ function Update-Language {
 function Show-HostButtons {
     param([array]$Hosts)
 
-    $sortedHosts = @(Get-SortedHosts -Hosts $Hosts)
-    $availableWidth = [math]::Max(200, $hostPanel.ClientSize.Width - $hostPanel.Padding.Left - $hostPanel.Padding.Right)
-    $gap = 8
-    $minCardWidth = 130
-    $columns = [math]::Max(1, [math]::Floor(($availableWidth + $gap) / ($minCardWidth + $gap)))
-    $cardWidth = [math]::Floor(($availableWidth - (($columns - 1) * $gap)) / $columns)
-    if ($cardWidth -lt $minCardWidth) { $cardWidth = $minCardWidth }
-
     $hostPanel.SuspendLayout()
     $hostPanel.Controls.Clear()
-    $index = 0
     $maxBottom = $hostPanel.Padding.Top
-    foreach ($entry in $sortedHosts) {
-        $button = New-Object System.Windows.Forms.Button
-        $button.Width = $cardWidth
-        $button.Height = 46
-        $button.FlatStyle = "Flat"
-        $button.FlatAppearance.BorderColor = $Border
-        $button.FlatAppearance.MouseOverBackColor = $BgCardHover
-        $button.BackColor = $BgCard
-        $button.ForeColor = $FgMain
-        $button.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 9)
-        $button.TextAlign = "MiddleCenter"
-        $button.Tag = $entry.Host
-        $button.Text = $entry.Host
-        $button.Cursor = [System.Windows.Forms.Cursors]::Hand
-        $tags = @(Get-HostTags -HostName $entry.Host)
-        $tooltipSourceLabel = if ((Get-UiLanguage) -eq "en") { "Source" } else { "Quelle" }
-        $tooltipTagsLabel = "Tags"
-        $tooltipHostLabel = "Host"
-        $script:HostToolTip.SetToolTip($button, "${tooltipHostLabel}: $($entry.Host)`r`n${tooltipTagsLabel}: $($tags -join ', ')`r`n${tooltipSourceLabel}: $($entry.SourceFile)")
-        $button.Add_Click({
-            param($controlSender, $clickEvent)
-            Start-SshHost -HostName $controlSender.Tag
-        })
+    $gap = 8
+    $buttonHeight = 42
+    $availableWidth = [math]::Max(200, $hostPanel.ClientSize.Width - $hostPanel.Padding.Left - $hostPanel.Padding.Right)
 
-        $columnIndex = $index % $columns
-        $rowIndex = [math]::Floor($index / $columns)
-        $x = $hostPanel.Padding.Left + ($columnIndex * ($cardWidth + $gap))
-        $y = $hostPanel.Padding.Top + ($rowIndex * ($button.Height + $gap))
-        $button.Location = New-Object System.Drawing.Point($x, $y)
-        $index++
-        $maxBottom = [math]::Max($maxBottom, $y + $button.Height)
-        $hostPanel.Controls.Add($button)
+    if ((Get-CurrentSortMode) -eq "tag") {
+        $groupMap = [ordered]@{}
+        foreach ($entry in $Hosts) {
+            $entryTags = @(Get-HostTags -HostName $entry.Host | Sort-Object)
+            if ($entryTags.Count -eq 0) {
+                $groupName = T "Untagged"
+                if (-not $groupMap.Contains($groupName)) {
+                    $groupMap[$groupName] = New-Object System.Collections.Generic.List[object]
+                }
+                $groupMap[$groupName].Add($entry) | Out-Null
+                continue
+            }
+
+            foreach ($tagName in $entryTags) {
+                if (-not $groupMap.Contains($tagName)) {
+                    $groupMap[$tagName] = New-Object System.Collections.Generic.List[object]
+                }
+                $groupMap[$tagName].Add($entry) | Out-Null
+            }
+        }
+
+        $y = $hostPanel.Padding.Top
+        foreach ($groupName in ($groupMap.Keys | Sort-Object)) {
+            $header = New-Object System.Windows.Forms.Label
+            $header.Text = $groupName
+            $header.Location = New-Object System.Drawing.Point($hostPanel.Padding.Left, $y)
+            $header.Size = New-Object System.Drawing.Size($availableWidth, 24)
+            $header.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 11)
+            $header.ForeColor = $FgMain
+            $hostPanel.Controls.Add($header)
+            $y += 24
+
+            $separator = New-Object System.Windows.Forms.Panel
+            $separator.Location = New-Object System.Drawing.Point($hostPanel.Padding.Left, $y)
+            $separator.Size = New-Object System.Drawing.Size([math]::Min(220, $availableWidth), 1)
+            $separator.BackColor = $Border
+            $hostPanel.Controls.Add($separator)
+            $y += 8
+
+            foreach ($entry in ($groupMap[$groupName] | Sort-Object Host -Unique)) {
+                $button = New-Object System.Windows.Forms.Button
+                $button.Location = New-Object System.Drawing.Point($hostPanel.Padding.Left, $y)
+                $button.Size = New-Object System.Drawing.Size($availableWidth, $buttonHeight)
+                $button.FlatStyle = "Flat"
+                $button.FlatAppearance.BorderColor = $Border
+                $button.FlatAppearance.MouseOverBackColor = $BgCardHover
+                $button.BackColor = $BgCard
+                $button.ForeColor = $FgMain
+                $button.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 9)
+                $button.TextAlign = "MiddleLeft"
+                $button.Padding = New-Object System.Windows.Forms.Padding(12, 0, 12, 0)
+                $button.Tag = $entry.Host
+                $button.Text = $entry.Host
+                $button.Cursor = [System.Windows.Forms.Cursors]::Hand
+                $tags = @(Get-HostTags -HostName $entry.Host)
+                $tooltipSourceLabel = if ((Get-UiLanguage) -eq "en") { "Source" } else { "Quelle" }
+                $tooltipTagsLabel = "Tags"
+                $tooltipHostLabel = "Host"
+                $script:HostToolTip.SetToolTip($button, "${tooltipHostLabel}: $($entry.Host)`r`n${tooltipTagsLabel}: $($tags -join ', ')`r`n${tooltipSourceLabel}: $($entry.SourceFile)")
+                $button.Add_Click({
+                    param($controlSender, $clickEvent)
+                    Start-SshHost -HostName $controlSender.Tag
+                })
+                $hostPanel.Controls.Add($button)
+                $y += $buttonHeight + 6
+            }
+
+            $y += 14
+            $maxBottom = [math]::Max($maxBottom, $y)
+        }
     }
+    else {
+        $sortedHosts = @(Get-SortedHosts -Hosts $Hosts)
+        $minCardWidth = 130
+        $columns = [math]::Max(1, [math]::Floor(($availableWidth + $gap) / ($minCardWidth + $gap)))
+        $cardWidth = [math]::Floor(($availableWidth - (($columns - 1) * $gap)) / $columns)
+        if ($cardWidth -lt $minCardWidth) { $cardWidth = $minCardWidth }
+
+        $index = 0
+        foreach ($entry in $sortedHosts) {
+            $button = New-Object System.Windows.Forms.Button
+            $button.Width = $cardWidth
+            $button.Height = 46
+            $button.FlatStyle = "Flat"
+            $button.FlatAppearance.BorderColor = $Border
+            $button.FlatAppearance.MouseOverBackColor = $BgCardHover
+            $button.BackColor = $BgCard
+            $button.ForeColor = $FgMain
+            $button.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 9)
+            $button.TextAlign = "MiddleCenter"
+            $button.Tag = $entry.Host
+            $button.Text = $entry.Host
+            $button.Cursor = [System.Windows.Forms.Cursors]::Hand
+            $tags = @(Get-HostTags -HostName $entry.Host)
+            $tooltipSourceLabel = if ((Get-UiLanguage) -eq "en") { "Source" } else { "Quelle" }
+            $tooltipTagsLabel = "Tags"
+            $tooltipHostLabel = "Host"
+            $script:HostToolTip.SetToolTip($button, "${tooltipHostLabel}: $($entry.Host)`r`n${tooltipTagsLabel}: $($tags -join ', ')`r`n${tooltipSourceLabel}: $($entry.SourceFile)")
+            $button.Add_Click({
+                param($controlSender, $clickEvent)
+                Start-SshHost -HostName $controlSender.Tag
+            })
+
+            $columnIndex = $index % $columns
+            $rowIndex = [math]::Floor($index / $columns)
+            $x = $hostPanel.Padding.Left + ($columnIndex * ($cardWidth + $gap))
+            $y = $hostPanel.Padding.Top + ($rowIndex * ($button.Height + $gap))
+            $button.Location = New-Object System.Drawing.Point($x, $y)
+            $index++
+            $maxBottom = [math]::Max($maxBottom, $y + $button.Height)
+            $hostPanel.Controls.Add($button)
+        }
+    }
+
     $hostPanel.AutoScrollMinSize = [System.Drawing.Size]::new(0, ($maxBottom + $hostPanel.Padding.Bottom))
     $hostPanel.ResumeLayout()
 }
