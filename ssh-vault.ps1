@@ -21,7 +21,7 @@ $HostMetaPath = Join-Path $AppRoot "ssh-host-meta.json"
 $UiStatePath = Join-Path $AppRoot "ssh-host-ui.json"
 $AppName = "SSH Vault"
 $AppAuthor = "kanuracer"
-$AppVersion = "0.8.6"
+$AppVersion = "0.8.7"
 $GitHubRepo = "kanuracer/ssh-vault"
 $GitHubRepoUrl = "https://github.com/$GitHubRepo"
 $GitHubBranch = "main"
@@ -152,7 +152,8 @@ function Get-SshHostsFromConfig {
 
 function Get-DefaultHostMeta {
     return @{
-        LastTagFilter = "Alle"
+        IncludeTags = @()
+        ExcludeTags = @()
         HostTags = @{}
         KnownTags = @()
     }
@@ -167,7 +168,8 @@ function Import-HostMeta {
     $meta = Get-DefaultHostMeta
     if (-not (Test-Path $MetaPath)) {
         $json = ([ordered]@{
-            LastTagFilter = $meta.LastTagFilter
+            IncludeTags   = @()
+            ExcludeTags   = @()
             HostTags      = [ordered]@{}
             KnownTags     = @()
         } | ConvertTo-Json -Depth 5)
@@ -177,12 +179,25 @@ function Import-HostMeta {
 
     try {
         $raw = Get-Content -Path $MetaPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
-        if ($null -ne $raw.LastTagFilter -and -not [string]::IsNullOrWhiteSpace([string]$raw.LastTagFilter)) {
-            $meta.LastTagFilter = [string]$raw.LastTagFilter
+        if ($null -ne $raw.IncludeTags) {
+            $meta.IncludeTags = @($raw.IncludeTags | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
+        }
+        elseif ($null -ne $raw.LastTagFilter -and -not [string]::IsNullOrWhiteSpace([string]$raw.LastTagFilter) -and [string]$raw.LastTagFilter -ne "Alle") {
+            $meta.IncludeTags = @([string]$raw.LastTagFilter)
+        }
+        if ($null -ne $raw.ExcludeTags) {
+            $meta.ExcludeTags = @($raw.ExcludeTags | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
         }
         if ($null -ne $raw.HostTags) {
             foreach ($p in $raw.HostTags.PSObject.Properties) {
-                $meta.HostTags[[string]$p.Name] = [string]$p.Value
+                $tagList = @()
+                if ($p.Value -is [System.Array]) {
+                    $tagList = @($p.Value | ForEach-Object { [string]$_ })
+                }
+                elseif ($null -ne $p.Value -and -not [string]::IsNullOrWhiteSpace([string]$p.Value)) {
+                    $tagList = @([string]$p.Value)
+                }
+                $meta.HostTags[[string]$p.Name] = @($tagList | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
             }
         }
         if ($null -ne $raw.KnownTags) {
@@ -209,7 +224,8 @@ function Export-HostMeta {
     }
 
     $payload = [ordered]@{
-        LastTagFilter = $Meta.LastTagFilter
+        IncludeTags = @($Meta.IncludeTags | Sort-Object -Unique)
+        ExcludeTags = @($Meta.ExcludeTags | Sort-Object -Unique)
         HostTags = $hostTags
         KnownTags = @($Meta.KnownTags | Sort-Object -Unique)
     }
@@ -218,30 +234,30 @@ function Export-HostMeta {
     Set-Content -Path $MetaPath -Value $json -Encoding UTF8
 }
 
-function Get-HostTag {
+function Get-HostTags {
     param([Parameter(Mandatory = $true)][string]$HostName)
     $key = $HostName.ToLowerInvariant()
     if ($script:HostMeta.HostTags.ContainsKey($key)) {
-        return $script:HostMeta.HostTags[$key]
+        return @($script:HostMeta.HostTags[$key])
     }
-    return ""
+    return @()
 }
 
-function Set-HostTag {
+function Set-HostTags {
     param(
         [Parameter(Mandatory = $true)][string]$HostName,
-        [string]$TagName
+        [string[]]$TagNames
     )
 
     $key = $HostName.ToLowerInvariant()
-    $trimmed = $TagName.Trim()
+    $normalized = @($TagNames | ForEach-Object { [string]$_ } | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
 
-    if ([string]::IsNullOrWhiteSpace($trimmed)) {
+    if ($normalized.Count -eq 0) {
         $null = $script:HostMeta.HostTags.Remove($key)
     }
     else {
-        $script:HostMeta.HostTags[$key] = $trimmed
-        $script:HostMeta.KnownTags = @($script:HostMeta.KnownTags + $trimmed | Sort-Object -Unique)
+        $script:HostMeta.HostTags[$key] = $normalized
+        $script:HostMeta.KnownTags = @($script:HostMeta.KnownTags + $normalized | Sort-Object -Unique)
     }
 
     Export-HostMeta -MetaPath $HostMetaPath -Meta $script:HostMeta
@@ -250,7 +266,9 @@ function Set-HostTag {
 function Get-AllTags {
     $all = @()
     $all += @($script:HostMeta.KnownTags)
-    $all += @($script:HostMeta.HostTags.Values)
+    foreach ($tagSet in $script:HostMeta.HostTags.Values) {
+        $all += @($tagSet)
+    }
     return @($all | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
 }
 
@@ -526,8 +544,8 @@ function Set-HostTagDialog {
     }
 
     $dialog = New-Object System.Windows.Forms.Form
-    $dialog.Text = "Tag setzen"
-    $dialog.Size = New-Object System.Drawing.Size(520, 240)
+    $dialog.Text = "Tags bearbeiten"
+    $dialog.Size = New-Object System.Drawing.Size(560, 340)
     $dialog.StartPosition = "CenterParent"
     $dialog.FormBorderStyle = "FixedDialog"
     $dialog.MaximizeBox = $false
@@ -541,11 +559,12 @@ function Set-HostTagDialog {
     $dialogLayout.Padding = New-Object System.Windows.Forms.Padding(16)
     $dialogLayout.BackColor = $BgPanel
     $dialogLayout.ColumnCount = 2
-    $dialogLayout.RowCount = 4
+    $dialogLayout.RowCount = 5
     $dialogLayout.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Absolute, 110))) | Out-Null
     $dialogLayout.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 100))) | Out-Null
     $dialogLayout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 40))) | Out-Null
-    $dialogLayout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 40))) | Out-Null
+    $dialogLayout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 120))) | Out-Null
+    $dialogLayout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 42))) | Out-Null
     $dialogLayout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 100))) | Out-Null
     $dialogLayout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 42))) | Out-Null
 
@@ -563,20 +582,32 @@ function Set-HostTagDialog {
     $comboHost.FlatStyle = "Popup"
 
     $labelTag = New-Object System.Windows.Forms.Label
-    $labelTag.Text = "Tag/Kategorie"
+    $labelTag.Text = "Vorhandene Tags"
     $labelTag.Dock = "Fill"
     $labelTag.TextAlign = "MiddleLeft"
     $labelTag.AutoSize = $true
 
-    $comboTag = New-Object System.Windows.Forms.ComboBox
-    $comboTag.Dock = "Fill"
-    $comboTag.DropDownStyle = "DropDown"
-    $comboTag.BackColor = $BgInput
-    $comboTag.ForeColor = $FgMain
-    $comboTag.FlatStyle = "Popup"
+    $tagList = New-Object System.Windows.Forms.CheckedListBox
+    $tagList.Dock = "Fill"
+    $tagList.CheckOnClick = $true
+    $tagList.BackColor = $BgInput
+    $tagList.ForeColor = $FgMain
+    $tagList.BorderStyle = "FixedSingle"
+
+    $labelNewTags = New-Object System.Windows.Forms.Label
+    $labelNewTags.Text = "Neue Tags"
+    $labelNewTags.Dock = "Fill"
+    $labelNewTags.TextAlign = "MiddleLeft"
+    $labelNewTags.AutoSize = $true
+
+    $newTagsBox = New-Object System.Windows.Forms.TextBox
+    $newTagsBox.Dock = "Fill"
+    $newTagsBox.BackColor = $BgInput
+    $newTagsBox.ForeColor = $FgMain
+    $newTagsBox.BorderStyle = "FixedSingle"
 
     $info = New-Object System.Windows.Forms.Label
-    $info.Text = "Bestehende Tags auswaehlen oder neuen Tag eintippen. Leer = Tag entfernen."
+    $info.Text = "Mehrere Tags moeglich. Neue Tags komma-getrennt eingeben."
     $info.Dock = "Fill"
     $info.TextAlign = "TopLeft"
     $info.ForeColor = $FgMuted
@@ -615,14 +646,28 @@ function Set-HostTagDialog {
     if ($comboHost.Items.Count -gt 0) {
         $comboHost.SelectedIndex = 0
         foreach ($tag in (Get-AllTags)) {
-            [void]$comboTag.Items.Add($tag)
+            [void]$tagList.Items.Add($tag)
         }
-        $comboTag.Text = Get-HostTag -HostName ([string]$comboHost.SelectedItem)
+        $existingTags = @(Get-HostTags -HostName ([string]$comboHost.SelectedItem))
+        for ($index = 0; $index -lt $tagList.Items.Count; $index++) {
+            if ($existingTags -contains [string]$tagList.Items[$index]) {
+                $tagList.SetItemChecked($index, $true)
+            }
+        }
     }
 
     $comboHost.Add_SelectedIndexChanged({
         $selected = [string]$comboHost.SelectedItem
-        $comboTag.Text = Get-HostTag -HostName $selected
+        for ($index = 0; $index -lt $tagList.Items.Count; $index++) {
+            $tagList.SetItemChecked($index, $false)
+        }
+        $newTagsBox.Text = ""
+        $existingTags = @(Get-HostTags -HostName $selected)
+        for ($index = 0; $index -lt $tagList.Items.Count; $index++) {
+            if ($existingTags -contains [string]$tagList.Items[$index]) {
+                $tagList.SetItemChecked($index, $true)
+            }
+        }
     })
 
     $script:TaggedHostResult = $null
@@ -637,7 +682,9 @@ function Set-HostTagDialog {
         if ([string]::IsNullOrWhiteSpace($selected)) {
             return
         }
-        Set-HostTag -HostName $selected -TagName $comboTag.Text
+        $selectedTags = @($tagList.CheckedItems | ForEach-Object { [string]$_ })
+        $typedTags = @($newTagsBox.Text -split '[,;]' | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        Set-HostTags -HostName $selected -TagNames @($selectedTags + $typedTags)
         $script:TaggedHostResult = $selected
         $dialog.DialogResult = [System.Windows.Forms.DialogResult]::OK
         $dialog.Close()
@@ -646,9 +693,11 @@ function Set-HostTagDialog {
     [void]$dialogLayout.Controls.Add($labelHost, 0, 0)
     [void]$dialogLayout.Controls.Add($comboHost, 1, 0)
     [void]$dialogLayout.Controls.Add($labelTag, 0, 1)
-    [void]$dialogLayout.Controls.Add($comboTag, 1, 1)
-    [void]$dialogLayout.Controls.Add($info, 1, 2)
-    [void]$dialogLayout.Controls.Add($buttonPanel, 0, 3)
+    [void]$dialogLayout.Controls.Add($tagList, 1, 1)
+    [void]$dialogLayout.Controls.Add($labelNewTags, 0, 2)
+    [void]$dialogLayout.Controls.Add($newTagsBox, 1, 2)
+    [void]$dialogLayout.Controls.Add($info, 1, 3)
+    [void]$dialogLayout.Controls.Add($buttonPanel, 0, 4)
     $dialogLayout.SetColumnSpan($buttonPanel, 2)
     $dialog.Controls.Add($dialogLayout)
     $dialog.AcceptButton = $btnSave
@@ -656,6 +705,125 @@ function Set-HostTagDialog {
 
     [void]$dialog.ShowDialog()
     return $script:TaggedHostResult
+}
+
+function Edit-TagFilterDialog {
+    $dialog = New-Object System.Windows.Forms.Form
+    $dialog.Text = "Filter bearbeiten"
+    $dialog.Size = New-Object System.Drawing.Size(640, 360)
+    $dialog.StartPosition = "CenterParent"
+    $dialog.FormBorderStyle = "FixedDialog"
+    $dialog.MaximizeBox = $false
+    $dialog.MinimizeBox = $false
+    $dialog.BackColor = $BgPanel
+    $dialog.ForeColor = $FgMain
+    $dialog.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+
+    $layout = New-Object System.Windows.Forms.TableLayoutPanel
+    $layout.Dock = "Fill"
+    $layout.Padding = New-Object System.Windows.Forms.Padding(16)
+    $layout.BackColor = $BgPanel
+    $layout.ColumnCount = 2
+    $layout.RowCount = 3
+    $layout.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50))) | Out-Null
+    $layout.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50))) | Out-Null
+    $layout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 26))) | Out-Null
+    $layout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 100))) | Out-Null
+    $layout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 42))) | Out-Null
+
+    $includeLabel = New-Object System.Windows.Forms.Label
+    $includeLabel.Text = "Zeigen, wenn Host einen dieser Tags hat"
+    $includeLabel.Dock = "Fill"
+    $includeLabel.ForeColor = $FgMain
+
+    $excludeLabel = New-Object System.Windows.Forms.Label
+    $excludeLabel.Text = "Ausblenden, wenn Host einen dieser Tags hat"
+    $excludeLabel.Dock = "Fill"
+    $excludeLabel.ForeColor = $FgMain
+
+    $includeList = New-Object System.Windows.Forms.CheckedListBox
+    $includeList.Dock = "Fill"
+    $includeList.CheckOnClick = $true
+    $includeList.BackColor = $BgInput
+    $includeList.ForeColor = $FgMain
+    $includeList.BorderStyle = "FixedSingle"
+
+    $excludeList = New-Object System.Windows.Forms.CheckedListBox
+    $excludeList.Dock = "Fill"
+    $excludeList.CheckOnClick = $true
+    $excludeList.BackColor = $BgInput
+    $excludeList.ForeColor = $FgMain
+    $excludeList.BorderStyle = "FixedSingle"
+
+    $buttonPanel = New-Object System.Windows.Forms.FlowLayoutPanel
+    $buttonPanel.Dock = "Fill"
+    $buttonPanel.FlowDirection = "RightToLeft"
+    $buttonPanel.WrapContents = $false
+
+    $btnSave = New-Object System.Windows.Forms.Button
+    $btnSave.Text = "Anwenden"
+    $btnSave.Width = 110
+    $btnSave.Height = 30
+    $btnSave.Margin = New-Object System.Windows.Forms.Padding(6, 0, 0, 0)
+    $btnSave.BackColor = $Accent
+    $btnSave.ForeColor = $FgMain
+    $btnSave.FlatStyle = "Flat"
+    $btnSave.FlatAppearance.BorderSize = 0
+
+    $btnCancel = New-Object System.Windows.Forms.Button
+    $btnCancel.Text = "Abbrechen"
+    $btnCancel.Width = 110
+    $btnCancel.Height = 30
+    $btnCancel.BackColor = $BgInput
+    $btnCancel.ForeColor = $FgMain
+    $btnCancel.FlatStyle = "Flat"
+    $btnCancel.FlatAppearance.BorderColor = $Border
+
+    [void]$buttonPanel.Controls.Add($btnSave)
+    [void]$buttonPanel.Controls.Add($btnCancel)
+
+    $allTags = @(Get-AllTags)
+    foreach ($tag in $allTags) {
+        [void]$includeList.Items.Add($tag)
+        [void]$excludeList.Items.Add($tag)
+    }
+
+    for ($index = 0; $index -lt $allTags.Count; $index++) {
+        if ($script:HostMeta.IncludeTags -contains $allTags[$index]) {
+            $includeList.SetItemChecked($index, $true)
+        }
+        if ($script:HostMeta.ExcludeTags -contains $allTags[$index]) {
+            $excludeList.SetItemChecked($index, $true)
+        }
+    }
+
+    $script:FilterDialogAccepted = $false
+    $btnCancel.Add_Click({
+        $dialog.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+        $dialog.Close()
+    })
+
+    $btnSave.Add_Click({
+        $script:HostMeta.IncludeTags = @($includeList.CheckedItems | ForEach-Object { [string]$_ } | Sort-Object -Unique)
+        $script:HostMeta.ExcludeTags = @($excludeList.CheckedItems | ForEach-Object { [string]$_ } | Sort-Object -Unique)
+        Export-HostMeta -MetaPath $HostMetaPath -Meta $script:HostMeta
+        $script:FilterDialogAccepted = $true
+        $dialog.DialogResult = [System.Windows.Forms.DialogResult]::OK
+        $dialog.Close()
+    })
+
+    [void]$layout.Controls.Add($includeLabel, 0, 0)
+    [void]$layout.Controls.Add($excludeLabel, 1, 0)
+    [void]$layout.Controls.Add($includeList, 0, 1)
+    [void]$layout.Controls.Add($excludeList, 1, 1)
+    [void]$layout.Controls.Add($buttonPanel, 0, 2)
+    $layout.SetColumnSpan($buttonPanel, 2)
+    $dialog.Controls.Add($layout)
+    $dialog.AcceptButton = $btnSave
+    $dialog.CancelButton = $btnCancel
+
+    [void]$dialog.ShowDialog()
+    return $script:FilterDialogAccepted
 }
 
 function New-UiButton {
@@ -689,7 +857,7 @@ function New-UiButton {
 
 function Get-DefaultUiState {
     return @{
-        Width = 590
+        Width = 620
         Height = 400
         Left = -1
         Top = -1
@@ -713,9 +881,6 @@ function Import-UiState {
     catch {}
 
     # Keep the app compact by default even when older UI state files were saved very wide.
-    if ($state.Width -gt 620) { $state.Width = 620 }
-    if ($state.Height -gt 400) { $state.Height = 400 }
-
     return $state
 }
 
@@ -969,13 +1134,14 @@ $searchBox.BorderStyle = "None"
 $searchBox.Font = New-Object System.Drawing.Font("Segoe UI", 9)
 $searchWrap.Controls.Add($searchBox)
 
-$tagFilterCombo = New-Object System.Windows.Forms.ComboBox
-$tagFilterCombo.Dock = "Fill"
-$tagFilterCombo.Margin = New-Object System.Windows.Forms.Padding(3)
-$tagFilterCombo.DropDownStyle = "DropDownList"
-$tagFilterCombo.BackColor = $BgInput
-$tagFilterCombo.ForeColor = $FgMain
-$tagFilterCombo.FlatStyle = "Flat"
+$filterSummaryBox = New-Object System.Windows.Forms.TextBox
+$filterSummaryBox.Dock = "Fill"
+$filterSummaryBox.Margin = New-Object System.Windows.Forms.Padding(3)
+$filterSummaryBox.ReadOnly = $true
+$filterSummaryBox.BackColor = $BgInput
+$filterSummaryBox.ForeColor = $FgMain
+$filterSummaryBox.BorderStyle = "FixedSingle"
+$filterSummaryBox.Text = "Alle"
 
 $headerActions = New-Object System.Windows.Forms.FlowLayoutPanel
 $headerActions.Dock = "Top"
@@ -988,6 +1154,9 @@ $headerActions.Margin = New-Object System.Windows.Forms.Padding(0, 8, 0, 0)
 $tagButton = New-UiButton -Text "Tags"
 $tagButton.Width = 100
 $tagButton.Dock = "None"
+$filterButton = New-UiButton -Text "Filter"
+$filterButton.Width = 90
+$filterButton.Dock = "None"
 $newHostButton = New-UiButton -Text "+ Host" -Primary
 $newHostButton.Width = 100
 $newHostButton.Dock = "None"
@@ -1002,8 +1171,9 @@ $updateButton.Width = 80
 $updateButton.Dock = "None"
 
 [void]$headerGrid.Controls.Add($searchWrap, 0, 0)
-[void]$headerGrid.Controls.Add($tagFilterCombo, 1, 0)
+[void]$headerGrid.Controls.Add($filterSummaryBox, 1, 0)
 [void]$headerActions.Controls.Add($tagButton)
+[void]$headerActions.Controls.Add($filterButton)
 [void]$headerActions.Controls.Add($newHostButton)
 [void]$headerActions.Controls.Add($refreshButton)
 [void]$headerGrid.Controls.Add($headerActions, 0, 1)
@@ -1050,10 +1220,9 @@ $infoTabButton.Cursor = [System.Windows.Forms.Cursors]::Hand
 [void]$tabNavPanel.Controls.Add($hostsTabButton)
 [void]$tabNavPanel.Controls.Add($infoTabButton)
 
-$hostPanel = New-Object System.Windows.Forms.FlowLayoutPanel
+$hostPanel = New-Object System.Windows.Forms.Panel
 $hostPanel.Dock = "Fill"
 $hostPanel.AutoScroll = $true
-$hostPanel.WrapContents = $true
 $hostPanel.Padding = New-Object System.Windows.Forms.Padding(6)
 $hostPanel.BackColor = $BgMain
 
@@ -1155,26 +1324,23 @@ $form.Controls.Add($mainPanel)
 $form.Controls.Add($topPanel)
 $form.Controls.Add($statusBar)
 
-function Update-TagFilterOptions {
-    $current = $script:HostMeta.LastTagFilter
-    if ($tagFilterCombo.SelectedItem) {
-        $current = [string]$tagFilterCombo.SelectedItem
+function Update-FilterSummary {
+    $include = @($script:HostMeta.IncludeTags)
+    $exclude = @($script:HostMeta.ExcludeTags)
+
+    if ($include.Count -eq 0 -and $exclude.Count -eq 0) {
+        $filterSummaryBox.Text = "Alle"
+        return
     }
 
-    $tagFilterCombo.BeginUpdate()
-    $tagFilterCombo.Items.Clear()
-    [void]$tagFilterCombo.Items.Add("Alle")
-    foreach ($tag in (Get-AllTags)) {
-        [void]$tagFilterCombo.Items.Add($tag)
+    $parts = @()
+    if ($include.Count -gt 0) {
+        $parts += "+" + ($include -join ", +")
     }
-
-    if (-not [string]::IsNullOrWhiteSpace($current) -and $tagFilterCombo.Items.Contains($current)) {
-        $tagFilterCombo.SelectedItem = $current
+    if ($exclude.Count -gt 0) {
+        $parts += "-" + ($exclude -join ", -")
     }
-    else {
-        $tagFilterCombo.SelectedIndex = 0
-    }
-    $tagFilterCombo.EndUpdate()
+    $filterSummaryBox.Text = ($parts -join "   ")
 }
 
 function Show-HostButtons {
@@ -1182,21 +1348,21 @@ function Show-HostButtons {
 
     $sortedHosts = @($Hosts | Sort-Object Host)
     $availableWidth = [math]::Max(200, $hostPanel.ClientSize.Width - $hostPanel.Padding.Left - $hostPanel.Padding.Right)
-    $gap = 4
-    $minCardWidth = 150
+    $gap = 8
+    $minCardWidth = 130
     $columns = [math]::Max(1, [math]::Floor(($availableWidth + $gap) / ($minCardWidth + $gap)))
     $cardWidth = [math]::Floor(($availableWidth - (($columns - 1) * $gap)) / $columns)
-    if ($cardWidth -gt 260) { $cardWidth = 260 }
     if ($cardWidth -lt $minCardWidth) { $cardWidth = $minCardWidth }
 
     $hostPanel.SuspendLayout()
     $hostPanel.Controls.Clear()
+    $index = 0
+    $maxBottom = $hostPanel.Padding.Top
     foreach ($entry in $sortedHosts) {
-        $tag = Get-HostTag -HostName $entry.Host
+        $tags = @(Get-HostTags -HostName $entry.Host)
         $button = New-Object System.Windows.Forms.Button
         $button.Width = $cardWidth
         $button.Height = 46
-        $button.Margin = New-Object System.Windows.Forms.Padding($gap)
         $button.FlatStyle = "Flat"
         $button.FlatAppearance.BorderColor = $Border
         $button.FlatAppearance.MouseOverBackColor = $BgCardHover
@@ -1206,17 +1372,26 @@ function Show-HostButtons {
         $button.TextAlign = "MiddleCenter"
         $button.Tag = $entry.Host
         $button.Text = $entry.Host
-        if (-not [string]::IsNullOrWhiteSpace($tag)) {
-            $button.Text = "$($entry.Host)`r`n[$tag]"
+        if ($tags.Count -gt 0) {
+            $button.Text = "$($entry.Host)`r`n[$($tags -join ', ')]"
         }
         $button.Cursor = [System.Windows.Forms.Cursors]::Hand
-        $script:HostToolTip.SetToolTip($button, "Host: $($entry.Host)`r`nTag: $tag`r`nQuelle: $($entry.SourceFile)")
+        $script:HostToolTip.SetToolTip($button, "Host: $($entry.Host)`r`nTags: $($tags -join ', ')`r`nQuelle: $($entry.SourceFile)")
         $button.Add_Click({
             param($controlSender, $clickEvent)
             Start-SshHost -HostName $controlSender.Tag
         })
+
+        $columnIndex = $index % $columns
+        $rowIndex = [math]::Floor($index / $columns)
+        $x = $hostPanel.Padding.Left + ($columnIndex * ($cardWidth + $gap))
+        $y = $hostPanel.Padding.Top + ($rowIndex * ($button.Height + $gap))
+        $button.Location = New-Object System.Drawing.Point($x, $y)
+        $index++
+        $maxBottom = [math]::Max($maxBottom, $y + $button.Height)
         $hostPanel.Controls.Add($button)
     }
+    $hostPanel.AutoScrollMinSize = New-Object System.Drawing.Size(0, $maxBottom + $hostPanel.Padding.Bottom)
     $hostPanel.ResumeLayout()
 }
 
@@ -1235,7 +1410,7 @@ function Update-Hosts {
 
     try {
         $script:AllHosts = @(Get-SshHostsFromConfig -ConfigPath $SshConfigPath)
-        Update-TagFilterOptions
+        Update-FilterSummary
         Update-HostFilter
     }
     catch {
@@ -1250,16 +1425,16 @@ function Update-Hosts {
 
 function Update-HostFilter {
     $filter = $searchBox.Text.Trim()
-    $selectedTag = "Alle"
-    if ($tagFilterCombo.SelectedItem) {
-        $selectedTag = [string]$tagFilterCombo.SelectedItem
-    }
+    $includeTags = @($script:HostMeta.IncludeTags)
+    $excludeTags = @($script:HostMeta.ExcludeTags)
 
     $filtered = $script:AllHosts | Where-Object {
         $matchSearch = [string]::IsNullOrWhiteSpace($filter) -or $_.Host -like "*$filter*"
         if (-not $matchSearch) { return $false }
-        if ($selectedTag -eq "Alle") { return $true }
-        return (Get-HostTag -HostName $_.Host) -eq $selectedTag
+        $hostTags = @(Get-HostTags -HostName $_.Host)
+        $matchesInclude = ($includeTags.Count -eq 0) -or (@($hostTags | Where-Object { $includeTags -contains $_ }).Count -gt 0)
+        $matchesExclude = (@($hostTags | Where-Object { $excludeTags -contains $_ }).Count -eq 0)
+        return ($matchesInclude -and $matchesExclude)
     }
 
     Show-HostButtons -Hosts $filtered
@@ -1300,17 +1475,17 @@ $searchBox.Add_TextChanged({ Update-HostFilter })
 $hostsTabButton.Add_Click({ Set-ActiveMainView -ViewName "Hosts" })
 $infoTabButton.Add_Click({ Set-ActiveMainView -ViewName "Info" })
 
-$tagFilterCombo.Add_SelectedIndexChanged({
-    if (-not $tagFilterCombo.SelectedItem) { return }
-    $script:HostMeta.LastTagFilter = [string]$tagFilterCombo.SelectedItem
-    Export-HostMeta -MetaPath $HostMetaPath -Meta $script:HostMeta
-    Update-HostFilter
-})
-
 $tagButton.Add_Click({
     $changedHost = Set-HostTagDialog -Hosts $script:AllHosts
     if (-not [string]::IsNullOrWhiteSpace($changedHost)) {
-        Update-TagFilterOptions
+        Update-FilterSummary
+        Update-HostFilter
+    }
+})
+
+$filterButton.Add_Click({
+    if (Edit-TagFilterDialog) {
+        Update-FilterSummary
         Update-HostFilter
     }
 })
@@ -1339,7 +1514,7 @@ $form.Add_FormClosing({
 
 $form.Add_Shown({
     Set-ActiveMainView -ViewName "Hosts"
-    Update-TagFilterOptions
+    Update-FilterSummary
     Update-Hosts
     Test-AppVersion
 })
