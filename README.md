@@ -1,27 +1,27 @@
 # SSH Vault
 
-SSH Vault is a small PowerShell WinForms launcher for SSH hosts from your local OpenSSH config.
-The project originated from the fact that I use Bitwarden as an SSH key storage, and I found it very annoying to type ssh user@ip into the command prompt every time.
+SSH Vault is a compact PowerShell WinForms app for managing and launching SSH hosts from your local OpenSSH config on Windows.
 
-<p align="center">
-  <img src="https://github.com/kanuracer/ssh-vault/blob/main/media/1.png" width="45%" />
-  <img src="https://github.com/kanuracer/ssh-vault/blob/main/media/new-host.png" width="45%" />
-</p>
-
-<p align="center">
-  <img src="https://github.com/kanuracer/ssh-vault/blob/main/media/tag-managment.png" width="45%" />
-</p>
+It was built as an SSH shortcut and bookmark tool for an OpenSSH-based workflow with Bitwarden-managed SSH keys.
 
 ## Features
 
-- Reads hosts from `~/.ssh/config`
+- Reads hosts from `%USERPROFILE%\.ssh\config`
 - Supports `Include` directives in SSH config files
-- One-click SSH connect via `cmd.exe`
-- Host search
-- Host tags/categories with reusable tag values
-- Persistent tag filter
+- Starts SSH sessions via `cmd.exe`
+- Search and filter hosts
+- Multi-tag support per host
+- Include and exclude tag filters
+- Optional sorting by:
+  - host name
+  - tag, then host name
+- Grouped host view when tag sorting is enabled
+- Host management menu for creating and deleting hosts
+- Reusable tags
 - Persistent window size and position
-- Built-in update check and self-update from GitHub
+- Persistent language and sorting settings
+- German and English UI
+- Built-in version check and self-update from GitHub
 
 ## Requirements
 
@@ -39,7 +39,7 @@ powershell.exe -ExecutionPolicy Bypass -File .\ssh-vault.ps1
 
 ## SSH Config
 
-SSH Vault reads host entries from:
+SSH Vault reads hosts from:
 
 ```text
 %USERPROFILE%\.ssh\config
@@ -48,32 +48,92 @@ SSH Vault reads host entries from:
 Example:
 
 ```sshconfig
-Host my-server
-    HostName 192.168.178.102
+Host web-prod
+    HostName 203.0.113.10
     User root
     Port 22
 ```
 
-If it doesn't exist, a config file will be created.
+The app also resolves OpenSSH `Include` directives and shows hosts from included config files.
+
+## Host Management
+
+You can manage hosts directly in the UI:
+
+- `Host` opens a menu with:
+  - `Neu`
+  - `Loeschen`
+- `Neu` creates a new `Host` block in the SSH config
+- `Loeschen` removes the selected host from the source config file
+
+If a `Host` line contains multiple aliases, SSH Vault removes only the selected alias from that line.
+
+## Tags and Filters
+
+Each host can have multiple tags.
+
+Available functions:
+
+- assign and remove tags
+- reuse previously created tags
+- filter by included tags
+- filter by excluded tags
+- combine tag filters with text search
+
+When sorting by tag, the host list is grouped by tag.
+
+Hosts without tags are shown in a separate group.
+
+## Settings
+
+The `Settings` tab contains:
+
+- language selection (`Deutsch`, `English`)
+- sorting mode selection
+- update check
+- self-update from GitHub
+
+Default language is `Deutsch`.
+
+Note: after changing the language, restart the app.
+
+## Info
+
+The `Info` tab contains:
+
+- app name
+- author
+- repository link
+- current version
 
 ## Local State
 
-On first start, SSH Vault automatically creates these files next to `ssh-vault.ps1`:
+SSH Vault creates these files next to `ssh-vault.ps1` if they do not exist:
 
 - `ssh-host-meta.json`
 - `ssh-host-ui.json`
 
-They store host tags, the selected tag filter, and window size/position.
+They store:
+
+- host tags
+- known tags
+- active include/exclude filters
+- window size and position
+- selected language
+- selected sorting mode
 
 ## Updates
 
-SSH Vault checks the remote `$AppVersion` from `main/ssh-vault.ps1` and compares it with the local `$AppVersion`.
+SSH Vault compares the local `$AppVersion` with the version in:
 
-An update is only offered if the GitHub version is newer than the local version.
+```text
+https://raw.githubusercontent.com/kanuracer/ssh-vault/main/ssh-vault.ps1
+```
 
-Before updating, the app asks for confirmation and creates a backup:
+An update is only offered when the GitHub version is newer than the local version.
+
+Before updating, SSH Vault asks for confirmation and creates a backup:
 
 ```text
 ssh-vault.ps1.bak
 ```
-

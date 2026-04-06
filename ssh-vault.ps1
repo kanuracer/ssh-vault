@@ -32,7 +32,7 @@ $HostMetaPath = Join-Path $AppRoot "ssh-host-meta.json"
 $UiStatePath = Join-Path $AppRoot "ssh-host-ui.json"
 $AppName = "SSH Vault"
 $AppAuthor = "kanuracer"
-$AppVersion = "0.9.2"
+$AppVersion = "1.0.0"
 $GitHubRepo = "kanuracer/ssh-vault"
 $GitHubRepoUrl = "https://github.com/$GitHubRepo"
 $GitHubBranch = "main"
@@ -46,6 +46,9 @@ $Translations = @{
         Settings = "Einstellungen"
         RestartRequiredNote = "Hinweis: Nach Sprachwechsel App bitte neu starten."
         Tags = "Tags"
+        HostMenu = "Host"
+        New = "Neu"
+        DeleteHost = "Loeschen"
         Filter = "Filter"
         NewHost = "+ Host"
         Refresh = "Neu laden"
@@ -87,6 +90,16 @@ $Translations = @{
         NewTags = "Neue Tags"
         TagDialogInfo = "Mehrere Tags moeglich. Neue Tags komma-getrennt eingeben."
         NewHostDialogTitle = "Neuen SSH Host anlegen"
+        DeleteHostDialogTitle = "SSH Host loeschen"
+        DeleteHostLabel = "Host"
+        DeleteHostConfirm = "Soll der Host '{0}' wirklich aus '{1}' geloescht werden?"
+        DeleteHostConfirmTitle = "Loeschen bestaetigen"
+        DeleteHostSuccess = "Host '{0}' wurde entfernt."
+        DeleteHostSuccessTitle = "Host geloescht"
+        DeleteHostError = "Host konnte nicht geloescht werden.`n`n{0}"
+        DeleteHostErrorTitle = "Loeschfehler"
+        DeleteHostNotFound = "Der Host '{0}' wurde in '{1}' nicht gefunden."
+        DeleteHostNotFoundTitle = "Host nicht gefunden"
         InputIncomplete = "Alias und HostName sind Pflichtfelder."
         InputIncompleteTitle = "Eingabe unvollstaendig"
         InvalidAlias = "Der Alias darf keine Leerzeichen enthalten."
@@ -119,6 +132,9 @@ $Translations = @{
         Settings = "Settings"
         RestartRequiredNote = "Note: Restart the app after changing the language."
         Tags = "Tags"
+        HostMenu = "Host"
+        New = "New"
+        DeleteHost = "Delete"
         Filter = "Filter"
         NewHost = "+ Host"
         Refresh = "Refresh"
@@ -160,6 +176,16 @@ $Translations = @{
         NewTags = "New tags"
         TagDialogInfo = "Multiple tags supported. Enter new tags separated by commas."
         NewHostDialogTitle = "Create New SSH Host"
+        DeleteHostDialogTitle = "Delete SSH Host"
+        DeleteHostLabel = "Host"
+        DeleteHostConfirm = "Delete host '{0}' from '{1}'?"
+        DeleteHostConfirmTitle = "Confirm deletion"
+        DeleteHostSuccess = "Host '{0}' was removed."
+        DeleteHostSuccessTitle = "Host deleted"
+        DeleteHostError = "Could not delete host.`n`n{0}"
+        DeleteHostErrorTitle = "Delete error"
+        DeleteHostNotFound = "Host '{0}' was not found in '{1}'."
+        DeleteHostNotFoundTitle = "Host not found"
         InputIncomplete = "Alias and HostName are required."
         InputIncompleteTitle = "Incomplete input"
         InvalidAlias = "Alias must not contain spaces."
@@ -758,6 +784,203 @@ function New-HostEntry {
     [void]$dialog.ShowDialog()
     return $script:NewHostAlias
 }
+
+function Remove-HostEntry {
+    param(
+        [Parameter(Mandatory = $true)][array]$Hosts
+    )
+
+    if ($Hosts.Count -eq 0) {
+        [System.Windows.Forms.MessageBox]::Show(
+            (T "NoHostsAvailable"),
+            (T "Notice"),
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Information
+        ) | Out-Null
+        return $null
+    }
+
+    $dialog = New-Object System.Windows.Forms.Form
+    $dialog.Text = T "DeleteHostDialogTitle"
+    $dialog.Size = New-Object System.Drawing.Size(520, 180)
+    $dialog.StartPosition = "CenterParent"
+    $dialog.FormBorderStyle = "FixedDialog"
+    $dialog.MaximizeBox = $false
+    $dialog.MinimizeBox = $false
+    $dialog.BackColor = $BgPanel
+    $dialog.ForeColor = $FgMain
+    $dialog.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+
+    $labelHost = New-Object System.Windows.Forms.Label
+    $labelHost.Text = T "DeleteHostLabel"
+    $labelHost.Location = New-Object System.Drawing.Point(20, 24)
+    $labelHost.AutoSize = $true
+
+    $comboHost = New-Object System.Windows.Forms.ComboBox
+    $comboHost.Location = New-Object System.Drawing.Point(120, 20)
+    $comboHost.Size = New-Object System.Drawing.Size(360, 28)
+    $comboHost.DropDownStyle = "DropDownList"
+    $comboHost.BackColor = $BgInput
+    $comboHost.ForeColor = $FgMain
+    $comboHost.FlatStyle = "Popup"
+    foreach ($entry in ($Hosts | Sort-Object Host)) {
+        [void]$comboHost.Items.Add($entry.Host)
+    }
+    if ($comboHost.Items.Count -gt 0) {
+        $comboHost.SelectedIndex = 0
+    }
+
+    $infoLabel = New-Object System.Windows.Forms.Label
+    $infoLabel.Location = New-Object System.Drawing.Point(120, 58)
+    $infoLabel.Size = New-Object System.Drawing.Size(360, 32)
+    $infoLabel.ForeColor = $FgMuted
+
+    $comboHost.Add_SelectedIndexChanged({
+        $selectedHost = [string]$comboHost.SelectedItem
+        $selectedEntry = $Hosts | Where-Object { $_.Host -eq $selectedHost } | Select-Object -First 1
+        if ($null -ne $selectedEntry) {
+            $infoLabel.Text = $selectedEntry.SourceFile
+        }
+        else {
+            $infoLabel.Text = ""
+        }
+    })
+    $comboHost.SelectedIndex = $comboHost.SelectedIndex
+
+    $btnDelete = New-Object System.Windows.Forms.Button
+    $btnDelete.Text = T "DeleteHost"
+    $btnDelete.Location = New-Object System.Drawing.Point(320, 102)
+    $btnDelete.Size = New-Object System.Drawing.Size(160, 34)
+    $btnDelete.BackColor = $Accent
+    $btnDelete.ForeColor = $FgMain
+    $btnDelete.FlatStyle = "Flat"
+    $btnDelete.FlatAppearance.BorderSize = 0
+
+    $btnCancel = New-Object System.Windows.Forms.Button
+    $btnCancel.Text = T "Cancel"
+    $btnCancel.Location = New-Object System.Drawing.Point(200, 102)
+    $btnCancel.Size = New-Object System.Drawing.Size(110, 34)
+    $btnCancel.BackColor = $BgInput
+    $btnCancel.ForeColor = $FgMain
+    $btnCancel.FlatStyle = "Flat"
+    $btnCancel.FlatAppearance.BorderColor = $FgMuted
+
+    $dialog.Controls.AddRange(@(
+        $labelHost, $comboHost, $infoLabel, $btnDelete, $btnCancel
+    ))
+
+    $script:DeletedHostAlias = $null
+
+    $btnCancel.Add_Click({
+        $dialog.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+        $dialog.Close()
+    })
+
+    $btnDelete.Add_Click({
+        $selectedHost = [string]$comboHost.SelectedItem
+        if ([string]::IsNullOrWhiteSpace($selectedHost)) {
+            return
+        }
+
+        $selectedEntry = $Hosts | Where-Object { $_.Host -eq $selectedHost } | Select-Object -First 1
+        if ($null -eq $selectedEntry) {
+            return
+        }
+
+        $confirmResult = [System.Windows.Forms.MessageBox]::Show(
+            (T "DeleteHostConfirm" @($selectedHost, $selectedEntry.SourceFile)),
+            (T "DeleteHostConfirmTitle"),
+            [System.Windows.Forms.MessageBoxButtons]::YesNo,
+            [System.Windows.Forms.MessageBoxIcon]::Question
+        )
+        if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) {
+            return
+        }
+
+        try {
+            $lines = @(Get-Content -Path $selectedEntry.SourceFile -ErrorAction Stop)
+            $blockStart = -1
+            $blockEnd = $lines.Count
+            $targetToken = $selectedHost.ToLowerInvariant()
+
+            for ($index = 0; $index -lt $lines.Count; $index++) {
+                $trimmed = $lines[$index].Trim()
+                if ($trimmed -match '^(?i)Host\s+(.+)$') {
+                    $hostPart = $matches[1].Trim()
+                    if ($hostPart -match '^(.*?)(\s+#.*)?$') {
+                        $hostPart = $matches[1].Trim()
+                    }
+
+                    $tokens = @($hostPart -split '\s+' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+                    $normalizedTokens = @($tokens | ForEach-Object { $_.ToLowerInvariant() })
+                    if ($normalizedTokens -contains $targetToken) {
+                        $blockStart = $index
+                        for ($inner = ($index + 1); $inner -lt $lines.Count; $inner++) {
+                            if ($lines[$inner].Trim() -match '^(?i)Host\s+') {
+                                $blockEnd = $inner
+                                break
+                            }
+                        }
+
+                        if ($tokens.Count -gt 1) {
+                            $remainingTokens = @($tokens | Where-Object { $_.ToLowerInvariant() -ne $targetToken })
+                            $lines[$index] = "Host " + ($remainingTokens -join " ")
+                        }
+                        else {
+                            $removeStart = $blockStart
+                            if ($removeStart -gt 0 -and [string]::IsNullOrWhiteSpace($lines[$removeStart - 1])) {
+                                $removeStart--
+                            }
+                            $remainingLines = New-Object System.Collections.Generic.List[string]
+                            for ($lineIndex = 0; $lineIndex -lt $lines.Count; $lineIndex++) {
+                                if ($lineIndex -lt $removeStart -or $lineIndex -ge $blockEnd) {
+                                    $remainingLines.Add($lines[$lineIndex]) | Out-Null
+                                }
+                            }
+                            $lines = @($remainingLines)
+                        }
+
+                        Set-Content -Path $selectedEntry.SourceFile -Value $lines -Encoding UTF8
+                        $null = $script:HostMeta.HostTags.Remove($targetToken)
+                        Export-HostMeta -MetaPath $HostMetaPath -Meta $script:HostMeta
+                        $script:DeletedHostAlias = $selectedHost
+                        [System.Windows.Forms.MessageBox]::Show(
+                            (T "DeleteHostSuccess" @($selectedHost)),
+                            (T "DeleteHostSuccessTitle"),
+                            [System.Windows.Forms.MessageBoxButtons]::OK,
+                            [System.Windows.Forms.MessageBoxIcon]::Information
+                        ) | Out-Null
+                        $dialog.DialogResult = [System.Windows.Forms.DialogResult]::OK
+                        $dialog.Close()
+                        return
+                    }
+                }
+            }
+
+            [System.Windows.Forms.MessageBox]::Show(
+                (T "DeleteHostNotFound" @($selectedHost, $selectedEntry.SourceFile)),
+                (T "DeleteHostNotFoundTitle"),
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Warning
+            ) | Out-Null
+        }
+        catch {
+            [System.Windows.Forms.MessageBox]::Show(
+                (T "DeleteHostError" @($_.Exception.Message)),
+                (T "DeleteHostErrorTitle"),
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Error
+            ) | Out-Null
+        }
+    })
+
+    $dialog.AcceptButton = $btnDelete
+    $dialog.CancelButton = $btnCancel
+
+    [void]$dialog.ShowDialog()
+    return $script:DeletedHostAlias
+}
+
 
 function Set-HostTagDialog {
     param(
@@ -1447,18 +1670,30 @@ $tagButton.Dock = "None"
 $filterButton = New-UiButton -Text "Filter"
 $filterButton.Width = 90
 $filterButton.Dock = "None"
-$newHostButton = New-UiButton -Text "+ Host" -Primary
-$newHostButton.Width = 100
-$newHostButton.Dock = "None"
+$hostMenuButton = New-UiButton -Text "Host" -Primary
+$hostMenuButton.Width = 100
+$hostMenuButton.Dock = "None"
 $refreshButton = New-UiButton -Text "Refresh"
 $refreshButton.Width = 90
 $refreshButton.Dock = "None"
+
+$hostMenu = New-Object System.Windows.Forms.ContextMenuStrip
+$hostMenu.BackColor = $BgPanel
+$hostMenu.ForeColor = $FgMain
+$hostMenu.RenderMode = [System.Windows.Forms.ToolStripRenderMode]::System
+
+$newHostMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem
+$newHostMenuItem.Text = "Neu"
+$deleteHostMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem
+$deleteHostMenuItem.Text = "Loeschen"
+[void]$hostMenu.Items.Add($newHostMenuItem)
+[void]$hostMenu.Items.Add($deleteHostMenuItem)
 
 [void]$headerGrid.Controls.Add($searchWrap, 0, 0)
 [void]$headerGrid.Controls.Add($filterResetButton, 1, 0)
 [void]$headerActions.Controls.Add($tagButton)
 [void]$headerActions.Controls.Add($filterButton)
-[void]$headerActions.Controls.Add($newHostButton)
+[void]$headerActions.Controls.Add($hostMenuButton)
 [void]$headerActions.Controls.Add($refreshButton)
 [void]$headerGrid.Controls.Add($headerActions, 0, 1)
 $headerGrid.SetColumnSpan($headerActions, 2)
@@ -1505,7 +1740,7 @@ $settingsTabButton = New-Object System.Windows.Forms.Button
 $settingsTabButton.Text = "Settings"
 $settingsTabButton.Width = 110
 $settingsTabButton.Height = 28
-$settingsTabButton.Margin = New-Object System.Windows.Forms.Padding(0)
+$settingsTabButton.Margin = New-Object System.Windows.Forms.Padding(0, 0, 6, 0)
 $settingsTabButton.FlatStyle = "Flat"
 $settingsTabButton.FlatAppearance.BorderSize = 0
 $settingsTabButton.BackColor = $BgPanel
@@ -1586,8 +1821,8 @@ $infoRepoLabel.Text = "Repo:"
 
 $infoRepoLink = New-Object System.Windows.Forms.LinkLabel
 $infoRepoLink.AutoSize = $false
-$infoRepoLink.Location = New-Object System.Drawing.Point(2, 126)
-$infoRepoLink.Size = New-Object System.Drawing.Size(520, 24)
+$infoRepoLink.Location = New-Object System.Drawing.Point(94, 102)
+$infoRepoLink.Size = New-Object System.Drawing.Size(430, 24)
 $infoRepoLink.Font = New-Object System.Drawing.Font("Segoe UI", 10)
 $infoRepoLink.LinkColor = $Accent
 $infoRepoLink.ActiveLinkColor = $FgMain
@@ -1748,7 +1983,7 @@ function Update-Language {
 
     $tagButton.Text = T "Tags"
     $filterButton.Text = T "Filter"
-    $newHostButton.Text = T "NewHost"
+    $hostMenuButton.Text = T "HostMenu"
     $refreshButton.Text = T "Refresh"
     $hostsTabButton.Text = T "Hosts"
     $infoTabButton.Text = T "Info"
@@ -1766,6 +2001,8 @@ function Update-Language {
     $settingsUpdateTitle.Text = T "UpdateSection"
     $checkUpdateButton.Text = T "CheckUpdate"
     $updateButton.Text = T "Update"
+    $newHostMenuItem.Text = T "New"
+    $deleteHostMenuItem.Text = T "DeleteHost"
 
     foreach ($item in $languageCombo.Items) {
         if ($item.Value -eq "de") { $item.Text = T "LanguageGerman" }
@@ -2073,9 +2310,21 @@ $filterButton.Add_Click({
     }
 })
 
-$newHostButton.Add_Click({
+$hostMenuButton.Add_Click({
+    $buttonScreenPoint = $hostMenuButton.PointToScreen([System.Drawing.Point]::new(0, $hostMenuButton.Height))
+    $menuPoint = $form.PointToClient($buttonScreenPoint)
+    $hostMenu.Show($form, $menuPoint)
+})
+$newHostMenuItem.Add_Click({
     $createdAlias = New-HostEntry -ConfigPath $SshConfigPath
     if (-not [string]::IsNullOrWhiteSpace($createdAlias)) {
+        $searchBox.Text = ""
+        Update-Hosts
+    }
+})
+$deleteHostMenuItem.Add_Click({
+    $deletedAlias = Remove-HostEntry -Hosts $script:AllHosts
+    if (-not [string]::IsNullOrWhiteSpace($deletedAlias)) {
         $searchBox.Text = ""
         Update-Hosts
     }
