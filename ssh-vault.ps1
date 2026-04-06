@@ -21,7 +21,7 @@ $HostMetaPath = Join-Path $AppRoot "ssh-host-meta.json"
 $UiStatePath = Join-Path $AppRoot "ssh-host-ui.json"
 $AppName = "SSH Vault"
 $AppAuthor = "kanuracer"
-$AppVersion = "0.8.5"
+$AppVersion = "0.8.6"
 $GitHubRepo = "kanuracer/ssh-vault"
 $GitHubRepoUrl = "https://github.com/$GitHubRepo"
 $GitHubBranch = "main"
@@ -689,8 +689,8 @@ function New-UiButton {
 
 function Get-DefaultUiState {
     return @{
-        Width = 720
-        Height = 520
+        Width = 590
+        Height = 400
         Left = -1
         Top = -1
     }
@@ -713,8 +713,8 @@ function Import-UiState {
     catch {}
 
     # Keep the app compact by default even when older UI state files were saved very wide.
-    if ($state.Width -gt 720) { $state.Width = 720 }
-    if ($state.Height -gt 560) { $state.Height = 560 }
+    if ($state.Width -gt 620) { $state.Width = 620 }
+    if ($state.Height -gt 400) { $state.Height = 400 }
 
     return $state
 }
@@ -931,7 +931,7 @@ $appIcon = if ($null -ne $resolvedAppLogoPath) { Get-AppIcon -ImagePath $resolve
 if ($null -ne $appIcon) {
     $form.Icon = $appIcon
 }
-$form.MinimumSize = New-Object System.Drawing.Size(600, 380)
+$form.MinimumSize = New-Object System.Drawing.Size(580, 380)
 $form.BackColor = $BgMain
 $form.ForeColor = $FgMain
 $form.Font = New-Object System.Drawing.Font("Segoe UI", 9)
@@ -1183,10 +1183,10 @@ function Show-HostButtons {
     $sortedHosts = @($Hosts | Sort-Object Host)
     $availableWidth = [math]::Max(200, $hostPanel.ClientSize.Width - $hostPanel.Padding.Left - $hostPanel.Padding.Right)
     $gap = 4
-    $minCardWidth = 130
+    $minCardWidth = 150
     $columns = [math]::Max(1, [math]::Floor(($availableWidth + $gap) / ($minCardWidth + $gap)))
     $cardWidth = [math]::Floor(($availableWidth - (($columns - 1) * $gap)) / $columns)
-    if ($cardWidth -gt 220) { $cardWidth = 220 }
+    if ($cardWidth -gt 260) { $cardWidth = 260 }
     if ($cardWidth -lt $minCardWidth) { $cardWidth = $minCardWidth }
 
     $hostPanel.SuspendLayout()
