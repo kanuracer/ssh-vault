@@ -28,6 +28,151 @@ $GitHubBranch = "main"
 $AppLogoPath = Join-Path $AppRoot "logo.png"
 $WindowTitle = "$AppName v$AppVersion"
 
+$Translations = @{
+    de = @{
+        Hosts = "Hosts"
+        Info = "Info"
+        Settings = "Einstellungen"
+        Tags = "Tags"
+        Filter = "Filter"
+        NewHost = "+ Host"
+        Refresh = "Neu laden"
+        SearchPlaceholder = ""
+        SearchPrefix = "Suche"
+        FilterAll = "Filter: Alle"
+        FilterPrefix = "Filter"
+        SortByHost = "Nach Hostname"
+        SortByTag = "Nach Tag, dann Hostname"
+        LanguageGerman = "Deutsch"
+        LanguageEnglish = "Englisch"
+        SettingsTitle = "Einstellungen"
+        LanguageLabel = "Sprache"
+        SortLabel = "Sortierung"
+        AppInfoTitle = "App-Informationen"
+        VersionLabel = "Version"
+        AuthorLabel = "Autor"
+        RepoLabel = "Repository"
+        UpdateSection = "Updates"
+        CheckUpdate = "Update pruefen"
+        Update = "Update"
+        UpdateChecking = "Pruefe Update..."
+        VersionOnly = "Version v{0}"
+        VersionWithUpdate = "Version v{0} | Update verfuegbar: v{1}"
+        StatusLoadingHosts = "Lade Hosts..."
+        StatusHosts = "{0} / {1} Host(s)"
+        SortModeHost = "host"
+        SortModeTag = "tag"
+        TagDialogTitle = "Tags bearbeiten"
+        NoHostsAvailable = "Keine Hosts verfuegbar."
+        Notice = "Hinweis"
+        HostLabel = "Host"
+        AliasLabel = "Alias (Host)"
+        HostNameLabel = "HostName"
+        UserOptionalLabel = "User (optional)"
+        PortOptionalLabel = "Port (optional)"
+        ExistingTags = "Vorhandene Tags"
+        NewTags = "Neue Tags"
+        TagDialogInfo = "Mehrere Tags moeglich. Neue Tags komma-getrennt eingeben."
+        NewHostDialogTitle = "Neuen SSH Host anlegen"
+        InputIncomplete = "Alias und HostName sind Pflichtfelder."
+        InputIncompleteTitle = "Eingabe unvollstaendig"
+        InvalidAlias = "Der Alias darf keine Leerzeichen enthalten."
+        InvalidAliasTitle = "Ungueltiger Alias"
+        InvalidPort = "Port muss numerisch sein."
+        InvalidPortTitle = "Ungueltiger Port"
+        Save = "Speichern"
+        Cancel = "Abbrechen"
+        FilterDialogTitle = "Filter bearbeiten"
+        FilterIncludeLabel = "Zeigen, wenn Host einen dieser Tags hat"
+        FilterExcludeLabel = "Ausblenden, wenn Host einen dieser Tags hat"
+        Apply = "Anwenden"
+        CreateHostSaveError = "Host konnte nicht gespeichert werden.`n`n{0}"
+        SaveErrorTitle = "Speicherfehler"
+        MissingConfig = "Die Datei '{0}' wurde nicht gefunden."
+        MissingConfigTitle = "SSH-Config fehlt"
+        ReadError = "Fehler beim Einlesen der SSH-Config.`n`n{0}"
+        ReadErrorTitle = "Lesefehler"
+        NoUpdateInstalled = "Kein Update installiert"
+        UpdateConfirm = "Soll SSH Vault wirklich von v{0} auf v{1} aktualisiert werden?"
+        UpdateConfirmTitle = "Update bestaetigen"
+        UpdateSuccess = "Update erfolgreich installiert.`nBackup: {0}`nBitte App neu starten."
+        UpdateSuccessTitle = "Update erfolgreich"
+        UpdateFailed = "Update fehlgeschlagen.`n`n{0}"
+        UpdateFailedTitle = "Updatefehler"
+    }
+    en = @{
+        Hosts = "Hosts"
+        Info = "Info"
+        Settings = "Settings"
+        Tags = "Tags"
+        Filter = "Filter"
+        NewHost = "+ Host"
+        Refresh = "Refresh"
+        SearchPlaceholder = ""
+        SearchPrefix = "Search"
+        FilterAll = "Filter: All"
+        FilterPrefix = "Filter"
+        SortByHost = "By host name"
+        SortByTag = "By tag, then host name"
+        LanguageGerman = "German"
+        LanguageEnglish = "English"
+        SettingsTitle = "Settings"
+        LanguageLabel = "Language"
+        SortLabel = "Sorting"
+        AppInfoTitle = "App Information"
+        VersionLabel = "Version"
+        AuthorLabel = "Author"
+        RepoLabel = "Repository"
+        UpdateSection = "Updates"
+        CheckUpdate = "Check Update"
+        Update = "Update"
+        UpdateChecking = "Checking for updates..."
+        VersionOnly = "Version v{0}"
+        VersionWithUpdate = "Version v{0} | Update available: v{1}"
+        StatusLoadingHosts = "Loading hosts..."
+        StatusHosts = "{0} / {1} Host(s)"
+        SortModeHost = "host"
+        SortModeTag = "tag"
+        TagDialogTitle = "Edit Tags"
+        NoHostsAvailable = "No hosts available."
+        Notice = "Notice"
+        HostLabel = "Host"
+        AliasLabel = "Alias (Host)"
+        HostNameLabel = "HostName"
+        UserOptionalLabel = "User (optional)"
+        PortOptionalLabel = "Port (optional)"
+        ExistingTags = "Existing tags"
+        NewTags = "New tags"
+        TagDialogInfo = "Multiple tags supported. Enter new tags separated by commas."
+        NewHostDialogTitle = "Create New SSH Host"
+        InputIncomplete = "Alias and HostName are required."
+        InputIncompleteTitle = "Incomplete input"
+        InvalidAlias = "Alias must not contain spaces."
+        InvalidAliasTitle = "Invalid alias"
+        InvalidPort = "Port must be numeric."
+        InvalidPortTitle = "Invalid port"
+        Save = "Save"
+        Cancel = "Cancel"
+        FilterDialogTitle = "Edit Filters"
+        FilterIncludeLabel = "Show when host has one of these tags"
+        FilterExcludeLabel = "Hide when host has one of these tags"
+        Apply = "Apply"
+        CreateHostSaveError = "Could not save host.`n`n{0}"
+        SaveErrorTitle = "Save Error"
+        MissingConfig = "The file '{0}' was not found."
+        MissingConfigTitle = "SSH config missing"
+        ReadError = "Error while reading SSH config.`n`n{0}"
+        ReadErrorTitle = "Read Error"
+        NoUpdateInstalled = "No update installed"
+        UpdateConfirm = "Update SSH Vault from v{0} to v{1}?"
+        UpdateConfirmTitle = "Confirm update"
+        UpdateSuccess = "Update installed successfully.`nBackup: {0}`nPlease restart the app."
+        UpdateSuccessTitle = "Update successful"
+        UpdateFailed = "Update failed.`n`n{0}"
+        UpdateFailedTitle = "Update error"
+    }
+}
+
 # Dark theme colors
 $BgMain = [System.Drawing.Color]::FromArgb(18, 22, 28)
 $BgPanel = [System.Drawing.Color]::FromArgb(24, 30, 38)
@@ -42,6 +187,65 @@ $Border = [System.Drawing.Color]::FromArgb(56, 66, 78)
 # =========================
 # Hilfsfunktionen
 # =========================
+function Get-UiLanguage {
+    $language = [string]$script:UiState.Language
+    if ([string]::IsNullOrWhiteSpace($language) -or -not $Translations.ContainsKey($language)) {
+        return "de"
+    }
+    return $language
+}
+
+function T {
+    param(
+        [Parameter(Mandatory = $true)][string]$Key,
+        [object[]]$FormatArgs
+    )
+
+    $language = if ($null -ne $script:UiState) { Get-UiLanguage } else { "de" }
+    $table = $Translations[$language]
+    $text = if ($table.ContainsKey($Key)) { [string]$table[$Key] } else { $Key }
+
+    if ($null -ne $FormatArgs -and $FormatArgs.Count -gt 0) {
+        return [string]::Format($text, $FormatArgs)
+    }
+
+    return $text
+}
+
+function Get-CurrentSortMode {
+    $sortMode = [string]$script:UiState.SortMode
+    if ($sortMode -notin @("host", "tag")) {
+        return "host"
+    }
+    return $sortMode
+}
+
+function Get-HostSortKey {
+    param([Parameter(Mandatory = $true)][string]$HostName)
+
+    $tags = @(Get-HostTags -HostName $HostName | Sort-Object)
+    if ($tags.Count -eq 0) {
+        return "~"
+    }
+
+    return (($tags -join "|").ToLowerInvariant())
+}
+
+function Get-SortedHosts {
+    param([Parameter(Mandatory = $true)][array]$Hosts)
+
+    if ((Get-CurrentSortMode) -eq "tag") {
+        return @(
+            $Hosts |
+                Sort-Object -Property `
+                    @{ Expression = { Get-HostSortKey -HostName $_.Host } }, `
+                    @{ Expression = { $_.Host.ToLowerInvariant() } }
+        )
+    }
+
+    return @($Hosts | Sort-Object -Property @{ Expression = { $_.Host.ToLowerInvariant() } })
+}
+
 function Resolve-SshConfigIncludes {
     param(
         [Parameter(Mandatory = $true)]
@@ -363,7 +567,7 @@ function New-HostEntry {
     )
 
     $dialog = New-Object System.Windows.Forms.Form
-    $dialog.Text = "Neuen SSH Host anlegen"
+    $dialog.Text = T "NewHostDialogTitle"
     $dialog.Size = New-Object System.Drawing.Size(460, 300)
     $dialog.StartPosition = "CenterParent"
     $dialog.FormBorderStyle = "FixedDialog"
@@ -373,7 +577,7 @@ function New-HostEntry {
     $dialog.ForeColor = $FgMain
 
     $labelAlias = New-Object System.Windows.Forms.Label
-    $labelAlias.Text = "Alias (Host):"
+    $labelAlias.Text = "{0}:" -f (T "AliasLabel")
     $labelAlias.Location = New-Object System.Drawing.Point(20, 20)
     $labelAlias.AutoSize = $true
 
@@ -385,7 +589,7 @@ function New-HostEntry {
     $txtAlias.BorderStyle = "FixedSingle"
 
     $labelHostName = New-Object System.Windows.Forms.Label
-    $labelHostName.Text = "HostName:"
+    $labelHostName.Text = "{0}:" -f (T "HostNameLabel")
     $labelHostName.Location = New-Object System.Drawing.Point(20, 60)
     $labelHostName.AutoSize = $true
 
@@ -397,7 +601,7 @@ function New-HostEntry {
     $txtHostName.BorderStyle = "FixedSingle"
 
     $labelUser = New-Object System.Windows.Forms.Label
-    $labelUser.Text = "User (optional):"
+    $labelUser.Text = "{0}:" -f (T "UserOptionalLabel")
     $labelUser.Location = New-Object System.Drawing.Point(20, 100)
     $labelUser.AutoSize = $true
 
@@ -409,7 +613,7 @@ function New-HostEntry {
     $txtUser.BorderStyle = "FixedSingle"
 
     $labelPort = New-Object System.Windows.Forms.Label
-    $labelPort.Text = "Port (optional):"
+    $labelPort.Text = "{0}:" -f (T "PortOptionalLabel")
     $labelPort.Location = New-Object System.Drawing.Point(20, 140)
     $labelPort.AutoSize = $true
 
@@ -421,7 +625,7 @@ function New-HostEntry {
     $txtPort.BorderStyle = "FixedSingle"
 
     $btnSave = New-Object System.Windows.Forms.Button
-    $btnSave.Text = "Speichern"
+    $btnSave.Text = T "Save"
     $btnSave.Location = New-Object System.Drawing.Point(260, 190)
     $btnSave.Size = New-Object System.Drawing.Size(160, 34)
     $btnSave.BackColor = $Accent
@@ -430,7 +634,7 @@ function New-HostEntry {
     $btnSave.FlatAppearance.BorderSize = 0
 
     $btnCancel = New-Object System.Windows.Forms.Button
-    $btnCancel.Text = "Abbrechen"
+    $btnCancel.Text = T "Cancel"
     $btnCancel.Location = New-Object System.Drawing.Point(140, 190)
     $btnCancel.Size = New-Object System.Drawing.Size(110, 34)
     $btnCancel.BackColor = $BgInput
@@ -461,8 +665,8 @@ function New-HostEntry {
 
             if ([string]::IsNullOrWhiteSpace($alias) -or [string]::IsNullOrWhiteSpace($targetHost)) {
                 [System.Windows.Forms.MessageBox]::Show(
-                    "Alias und HostName sind Pflichtfelder.",
-                    "Eingabe unvollstaendig",
+                    (T "InputIncomplete"),
+                    (T "InputIncompleteTitle"),
                     [System.Windows.Forms.MessageBoxButtons]::OK,
                     [System.Windows.Forms.MessageBoxIcon]::Warning
                 ) | Out-Null
@@ -471,8 +675,8 @@ function New-HostEntry {
 
             if ($alias -match '\s') {
                 [System.Windows.Forms.MessageBox]::Show(
-                    "Der Alias darf keine Leerzeichen enthalten.",
-                    "Ungueltiger Alias",
+                    (T "InvalidAlias"),
+                    (T "InvalidAliasTitle"),
                     [System.Windows.Forms.MessageBoxButtons]::OK,
                     [System.Windows.Forms.MessageBoxIcon]::Warning
                 ) | Out-Null
@@ -481,8 +685,8 @@ function New-HostEntry {
 
             if (-not [string]::IsNullOrWhiteSpace($port) -and $port -notmatch '^\d+$') {
                 [System.Windows.Forms.MessageBox]::Show(
-                    "Port muss numerisch sein.",
-                    "Ungueltiger Port",
+                    (T "InvalidPort"),
+                    (T "InvalidPortTitle"),
                     [System.Windows.Forms.MessageBoxButtons]::OK,
                     [System.Windows.Forms.MessageBoxIcon]::Warning
                 ) | Out-Null
@@ -512,8 +716,8 @@ function New-HostEntry {
             }
             catch {
                 [System.Windows.Forms.MessageBox]::Show(
-                    "Host konnte nicht gespeichert werden.`n`n$($_.Exception.Message)",
-                    "Speicherfehler",
+                    (T "CreateHostSaveError" @($_.Exception.Message)),
+                    (T "SaveErrorTitle"),
                     [System.Windows.Forms.MessageBoxButtons]::OK,
                     [System.Windows.Forms.MessageBoxIcon]::Error
                 ) | Out-Null
@@ -535,8 +739,8 @@ function Set-HostTagDialog {
 
     if ($Hosts.Count -eq 0) {
         [System.Windows.Forms.MessageBox]::Show(
-            "Keine Hosts verfuegbar.",
-            "Hinweis",
+            (T "NoHostsAvailable"),
+            (T "Notice"),
             [System.Windows.Forms.MessageBoxButtons]::OK,
             [System.Windows.Forms.MessageBoxIcon]::Information
         ) | Out-Null
@@ -544,7 +748,7 @@ function Set-HostTagDialog {
     }
 
     $dialog = New-Object System.Windows.Forms.Form
-    $dialog.Text = "Tags bearbeiten"
+    $dialog.Text = T "TagDialogTitle"
     $dialog.Size = New-Object System.Drawing.Size(560, 340)
     $dialog.StartPosition = "CenterParent"
     $dialog.FormBorderStyle = "FixedDialog"
@@ -569,7 +773,7 @@ function Set-HostTagDialog {
     $dialogLayout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 42))) | Out-Null
 
     $labelHost = New-Object System.Windows.Forms.Label
-    $labelHost.Text = "Host"
+    $labelHost.Text = T "HostLabel"
     $labelHost.Dock = "Fill"
     $labelHost.TextAlign = "MiddleLeft"
     $labelHost.AutoSize = $true
@@ -582,7 +786,7 @@ function Set-HostTagDialog {
     $comboHost.FlatStyle = "Popup"
 
     $labelTag = New-Object System.Windows.Forms.Label
-    $labelTag.Text = "Vorhandene Tags"
+    $labelTag.Text = T "ExistingTags"
     $labelTag.Dock = "Fill"
     $labelTag.TextAlign = "MiddleLeft"
     $labelTag.AutoSize = $true
@@ -595,7 +799,7 @@ function Set-HostTagDialog {
     $tagList.BorderStyle = "FixedSingle"
 
     $labelNewTags = New-Object System.Windows.Forms.Label
-    $labelNewTags.Text = "Neue Tags"
+    $labelNewTags.Text = T "NewTags"
     $labelNewTags.Dock = "Fill"
     $labelNewTags.TextAlign = "MiddleLeft"
     $labelNewTags.AutoSize = $true
@@ -607,7 +811,7 @@ function Set-HostTagDialog {
     $newTagsBox.BorderStyle = "FixedSingle"
 
     $info = New-Object System.Windows.Forms.Label
-    $info.Text = "Mehrere Tags moeglich. Neue Tags komma-getrennt eingeben."
+    $info.Text = T "TagDialogInfo"
     $info.Dock = "Fill"
     $info.TextAlign = "TopLeft"
     $info.ForeColor = $FgMuted
@@ -618,7 +822,7 @@ function Set-HostTagDialog {
     $buttonPanel.WrapContents = $false
 
     $btnSave = New-Object System.Windows.Forms.Button
-    $btnSave.Text = "Speichern"
+    $btnSave.Text = T "Save"
     $btnSave.Width = 110
     $btnSave.Height = 30
     $btnSave.Margin = New-Object System.Windows.Forms.Padding(6, 0, 0, 0)
@@ -628,7 +832,7 @@ function Set-HostTagDialog {
     $btnSave.FlatAppearance.BorderSize = 0
 
     $btnCancel = New-Object System.Windows.Forms.Button
-    $btnCancel.Text = "Abbrechen"
+    $btnCancel.Text = T "Cancel"
     $btnCancel.Width = 110
     $btnCancel.Height = 30
     $btnCancel.BackColor = $BgInput
@@ -709,7 +913,7 @@ function Set-HostTagDialog {
 
 function Edit-TagFilterDialog {
     $dialog = New-Object System.Windows.Forms.Form
-    $dialog.Text = "Filter bearbeiten"
+    $dialog.Text = T "FilterDialogTitle"
     $dialog.Size = New-Object System.Drawing.Size(640, 360)
     $dialog.StartPosition = "CenterParent"
     $dialog.FormBorderStyle = "FixedDialog"
@@ -732,12 +936,12 @@ function Edit-TagFilterDialog {
     $layout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 42))) | Out-Null
 
     $includeLabel = New-Object System.Windows.Forms.Label
-    $includeLabel.Text = "Zeigen, wenn Host einen dieser Tags hat"
+    $includeLabel.Text = T "FilterIncludeLabel"
     $includeLabel.Dock = "Fill"
     $includeLabel.ForeColor = $FgMain
 
     $excludeLabel = New-Object System.Windows.Forms.Label
-    $excludeLabel.Text = "Ausblenden, wenn Host einen dieser Tags hat"
+    $excludeLabel.Text = T "FilterExcludeLabel"
     $excludeLabel.Dock = "Fill"
     $excludeLabel.ForeColor = $FgMain
 
@@ -761,7 +965,7 @@ function Edit-TagFilterDialog {
     $buttonPanel.WrapContents = $false
 
     $btnSave = New-Object System.Windows.Forms.Button
-    $btnSave.Text = "Anwenden"
+    $btnSave.Text = T "Apply"
     $btnSave.Width = 110
     $btnSave.Height = 30
     $btnSave.Margin = New-Object System.Windows.Forms.Padding(6, 0, 0, 0)
@@ -771,7 +975,7 @@ function Edit-TagFilterDialog {
     $btnSave.FlatAppearance.BorderSize = 0
 
     $btnCancel = New-Object System.Windows.Forms.Button
-    $btnCancel.Text = "Abbrechen"
+    $btnCancel.Text = T "Cancel"
     $btnCancel.Width = 110
     $btnCancel.Height = 30
     $btnCancel.BackColor = $BgInput
@@ -861,6 +1065,8 @@ function Get-DefaultUiState {
         Height = 400
         Left = -1
         Top = -1
+        Language = "de"
+        SortMode = "host"
     }
 }
 
@@ -877,6 +1083,8 @@ function Import-UiState {
         if ($raw.Height -gt 300) { $state.Height = [int]$raw.Height }
         if ($raw.Left -ge 0) { $state.Left = [int]$raw.Left }
         if ($raw.Top -ge 0) { $state.Top = [int]$raw.Top }
+        if ([string]$raw.Language -in @("de", "en")) { $state.Language = [string]$raw.Language }
+        if ([string]$raw.SortMode -in @("host", "tag")) { $state.SortMode = [string]$raw.SortMode }
     }
     catch {}
 
@@ -924,6 +1132,20 @@ function ConvertTo-NormalizedVersion {
     try { return [version]$clean } catch { return $null }
 }
 
+function Format-UpdateStatusReason {
+    param([Parameter(Mandatory = $true)]$UpdateStatus)
+
+    if ($null -eq $UpdateStatus.RemoteVersion -or $null -eq $UpdateStatus.LocalVersion) {
+        return (T "VersionOnly" @($AppVersion))
+    }
+
+    if ($UpdateStatus.IsAvailable) {
+        return (T "VersionWithUpdate" @($AppVersion, $UpdateStatus.RemoteVersionText))
+    }
+
+    return (T "VersionOnly" @($AppVersion))
+}
+
 function Get-UpdateStatus {
     $localVersion = ConvertTo-NormalizedVersion -VersionText $AppVersion
     $remoteVersionText = Get-RemoteAppVersion
@@ -938,24 +1160,28 @@ function Get-UpdateStatus {
     }
 
     if ($null -eq $remoteVersion -or $null -eq $localVersion) {
-        return [PSCustomObject]@{
+        $status = [PSCustomObject]@{
             IsAvailable = $false
-            Reason = "Version v$AppVersion"
+            Reason = $null
             Release = $null
             RemoteVersion = $remoteVersion
             LocalVersion = $localVersion
             RemoteVersionText = $remoteVersionText
         }
+        $status.Reason = Format-UpdateStatusReason -UpdateStatus $status
+        return $status
     }
 
-    return [PSCustomObject]@{
+    $status = [PSCustomObject]@{
         IsAvailable = ($remoteVersion -gt $localVersion)
-        Reason = if ($remoteVersion -gt $localVersion) { "Version v$AppVersion | Update verfuegbar: v$remoteVersionText" } else { "Version v$AppVersion" }
+        Reason = $null
         Release = $null
         RemoteVersion = $remoteVersion
         LocalVersion = $localVersion
         RemoteVersionText = $remoteVersionText
     }
+    $status.Reason = Format-UpdateStatusReason -UpdateStatus $status
+    return $status
 }
 
 function Get-CurrentScriptPath {
@@ -1050,7 +1276,7 @@ function Update-AppFromGitHub {
         if (-not $updateStatus.IsAvailable) {
             [System.Windows.Forms.MessageBox]::Show(
                 $updateStatus.Reason,
-                "Kein Update installiert",
+                (T "NoUpdateInstalled"),
                 [System.Windows.Forms.MessageBoxButtons]::OK,
                 [System.Windows.Forms.MessageBoxIcon]::Information
             ) | Out-Null
@@ -1059,8 +1285,8 @@ function Update-AppFromGitHub {
         }
 
         $confirmResult = [System.Windows.Forms.MessageBox]::Show(
-            "Soll SSH Vault wirklich von v$AppVersion auf v$($updateStatus.RemoteVersionText) aktualisiert werden?",
-            "Update bestaetigen",
+            (T "UpdateConfirm" @($AppVersion, $updateStatus.RemoteVersionText)),
+            (T "UpdateConfirmTitle"),
             [System.Windows.Forms.MessageBoxButtons]::YesNo,
             [System.Windows.Forms.MessageBoxIcon]::Question
         )
@@ -1080,16 +1306,16 @@ function Update-AppFromGitHub {
         Set-Content -Path $scriptPath -Value $newScript.Content -Encoding UTF8
 
         [System.Windows.Forms.MessageBox]::Show(
-            "Update erfolgreich installiert.`nBackup: $backupPath`nBitte App neu starten.",
-            "Update erfolgreich",
+            (T "UpdateSuccess" @($backupPath)),
+            (T "UpdateSuccessTitle"),
             [System.Windows.Forms.MessageBoxButtons]::OK,
             [System.Windows.Forms.MessageBoxIcon]::Information
         ) | Out-Null
     }
     catch {
         [System.Windows.Forms.MessageBox]::Show(
-            "Update fehlgeschlagen.`n`n$($_.Exception.Message)",
-            "Updatefehler",
+            (T "UpdateFailed" @($_.Exception.Message)),
+            (T "UpdateFailedTitle"),
             [System.Windows.Forms.MessageBoxButtons]::OK,
             [System.Windows.Forms.MessageBoxIcon]::Error
         ) | Out-Null
@@ -1103,6 +1329,7 @@ $script:AllHosts = @()
 $script:HostMeta = Import-HostMeta -MetaPath $HostMetaPath
 $script:HostToolTip = New-Object System.Windows.Forms.ToolTip
 $script:UiState = Import-UiState -UiPath $UiStatePath
+$script:LastUpdateStatus = $null
 
 $form = New-Object System.Windows.Forms.Form
 $form.Text = $WindowTitle
@@ -1117,7 +1344,7 @@ $appIcon = if ($null -ne $resolvedAppLogoPath) { Get-AppIcon -ImagePath $resolve
 if ($null -ne $appIcon) {
     $form.Icon = $appIcon
 }
-$form.MinimumSize = New-Object System.Drawing.Size(580, 470)
+$form.MinimumSize = New-Object System.Drawing.Size(580, 520)
 $form.BackColor = $BgMain
 $form.ForeColor = $FgMain
 $form.Font = New-Object System.Drawing.Font("Segoe UI", 9)
@@ -1187,12 +1414,6 @@ $newHostButton.Dock = "None"
 $refreshButton = New-UiButton -Text "Refresh"
 $refreshButton.Width = 90
 $refreshButton.Dock = "None"
-$checkUpdateButton = New-UiButton -Text "Check"
-$checkUpdateButton.Width = 80
-$checkUpdateButton.Dock = "None"
-$updateButton = New-UiButton -Text "Update"
-$updateButton.Width = 80
-$updateButton.Dock = "None"
 
 [void]$headerGrid.Controls.Add($searchWrap, 0, 0)
 [void]$headerGrid.Controls.Add($filterResetButton, 1, 0)
@@ -1233,7 +1454,7 @@ $infoTabButton = New-Object System.Windows.Forms.Button
 $infoTabButton.Text = "Info"
 $infoTabButton.Width = 90
 $infoTabButton.Height = 28
-$infoTabButton.Margin = New-Object System.Windows.Forms.Padding(0)
+$infoTabButton.Margin = New-Object System.Windows.Forms.Padding(0, 0, 6, 0)
 $infoTabButton.FlatStyle = "Flat"
 $infoTabButton.FlatAppearance.BorderSize = 0
 $infoTabButton.BackColor = $BgPanel
@@ -1241,8 +1462,21 @@ $infoTabButton.ForeColor = $FgMuted
 $infoTabButton.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 9)
 $infoTabButton.Cursor = [System.Windows.Forms.Cursors]::Hand
 
+$settingsTabButton = New-Object System.Windows.Forms.Button
+$settingsTabButton.Text = "Settings"
+$settingsTabButton.Width = 110
+$settingsTabButton.Height = 28
+$settingsTabButton.Margin = New-Object System.Windows.Forms.Padding(0)
+$settingsTabButton.FlatStyle = "Flat"
+$settingsTabButton.FlatAppearance.BorderSize = 0
+$settingsTabButton.BackColor = $BgPanel
+$settingsTabButton.ForeColor = $FgMuted
+$settingsTabButton.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 9)
+$settingsTabButton.Cursor = [System.Windows.Forms.Cursors]::Hand
+
 [void]$tabNavPanel.Controls.Add($hostsTabButton)
 [void]$tabNavPanel.Controls.Add($infoTabButton)
+[void]$tabNavPanel.Controls.Add($settingsTabButton)
 
 $hostPanel = New-Object System.Windows.Forms.Panel
 $hostPanel.Dock = "Fill"
@@ -1294,52 +1528,153 @@ $infoRepoLink.VisitedLinkColor = $Accent
 $infoRepoLink.Text = $GitHubRepoUrl
 $infoRepoLink.Add_LinkClicked({ Start-Process $GitHubRepoUrl })
 
+$settingsPanel = New-Object System.Windows.Forms.Panel
+$settingsPanel.Dock = "Fill"
+$settingsPanel.Padding = New-Object System.Windows.Forms.Padding(24)
+$settingsPanel.BackColor = $BgMain
+$settingsPanel.Visible = $false
+
+$settingsTitle = New-Object System.Windows.Forms.Label
+$settingsTitle.AutoSize = $true
+$settingsTitle.Location = New-Object System.Drawing.Point(0, 0)
+$settingsTitle.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 16)
+$settingsTitle.ForeColor = $FgMain
+
+$languageLabel = New-Object System.Windows.Forms.Label
+$languageLabel.AutoSize = $true
+$languageLabel.Location = New-Object System.Drawing.Point(2, 48)
+$languageLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+$languageLabel.ForeColor = $FgMuted
+
+$languageCombo = New-Object System.Windows.Forms.ComboBox
+$languageCombo.Location = New-Object System.Drawing.Point(180, 44)
+$languageCombo.Size = New-Object System.Drawing.Size(180, 28)
+$languageCombo.DropDownStyle = "DropDownList"
+$languageCombo.BackColor = $BgInput
+$languageCombo.ForeColor = $FgMain
+$languageCombo.FlatStyle = "Popup"
+$null = $languageCombo.Items.Add([PSCustomObject]@{ Text = ""; Value = "de" })
+$null = $languageCombo.Items.Add([PSCustomObject]@{ Text = ""; Value = "en" })
+$languageCombo.DisplayMember = "Text"
+$languageCombo.ValueMember = "Value"
+
+$sortLabel = New-Object System.Windows.Forms.Label
+$sortLabel.AutoSize = $true
+$sortLabel.Location = New-Object System.Drawing.Point(2, 84)
+$sortLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+$sortLabel.ForeColor = $FgMuted
+
+$sortCombo = New-Object System.Windows.Forms.ComboBox
+$sortCombo.Location = New-Object System.Drawing.Point(180, 80)
+$sortCombo.Size = New-Object System.Drawing.Size(260, 28)
+$sortCombo.DropDownStyle = "DropDownList"
+$sortCombo.BackColor = $BgInput
+$sortCombo.ForeColor = $FgMain
+$sortCombo.FlatStyle = "Popup"
+$null = $sortCombo.Items.Add([PSCustomObject]@{ Text = ""; Value = "host" })
+$null = $sortCombo.Items.Add([PSCustomObject]@{ Text = ""; Value = "tag" })
+$sortCombo.DisplayMember = "Text"
+$sortCombo.ValueMember = "Value"
+
+$settingsAppInfoTitle = New-Object System.Windows.Forms.Label
+$settingsAppInfoTitle.AutoSize = $true
+$settingsAppInfoTitle.Location = New-Object System.Drawing.Point(2, 132)
+$settingsAppInfoTitle.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 12)
+$settingsAppInfoTitle.ForeColor = $FgMain
+
+$settingsVersion = New-Object System.Windows.Forms.Label
+$settingsVersion.AutoSize = $true
+$settingsVersion.Location = New-Object System.Drawing.Point(2, 164)
+$settingsVersion.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+$settingsVersion.ForeColor = $FgMuted
+
+$settingsAuthor = New-Object System.Windows.Forms.Label
+$settingsAuthor.AutoSize = $true
+$settingsAuthor.Location = New-Object System.Drawing.Point(2, 192)
+$settingsAuthor.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+$settingsAuthor.ForeColor = $FgMuted
+
+$settingsRepoLabel = New-Object System.Windows.Forms.Label
+$settingsRepoLabel.AutoSize = $true
+$settingsRepoLabel.Location = New-Object System.Drawing.Point(2, 220)
+$settingsRepoLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+$settingsRepoLabel.ForeColor = $FgMuted
+
+$settingsRepoLink = New-Object System.Windows.Forms.LinkLabel
+$settingsRepoLink.AutoSize = $true
+$settingsRepoLink.Location = New-Object System.Drawing.Point(94, 220)
+$settingsRepoLink.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+$settingsRepoLink.LinkColor = $Accent
+$settingsRepoLink.ActiveLinkColor = $FgMain
+$settingsRepoLink.VisitedLinkColor = $Accent
+$settingsRepoLink.Text = $GitHubRepoUrl
+$settingsRepoLink.Add_LinkClicked({ Start-Process $GitHubRepoUrl })
+
+$settingsUpdateTitle = New-Object System.Windows.Forms.Label
+$settingsUpdateTitle.AutoSize = $true
+$settingsUpdateTitle.Location = New-Object System.Drawing.Point(2, 264)
+$settingsUpdateTitle.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 12)
+$settingsUpdateTitle.ForeColor = $FgMain
+
 $infoUpdateStatus = New-Object System.Windows.Forms.Label
 $infoUpdateStatus.AutoSize = $true
-$infoUpdateStatus.Location = New-Object System.Drawing.Point(2, 140)
+$infoUpdateStatus.Location = New-Object System.Drawing.Point(2, 296)
 $infoUpdateStatus.Font = New-Object System.Drawing.Font("Segoe UI", 10)
 $infoUpdateStatus.ForeColor = $FgMuted
-$infoUpdateStatus.Text = "Version v$AppVersion"
+$infoUpdateStatus.Text = "Version"
 
-$infoActions = New-Object System.Windows.Forms.FlowLayoutPanel
-$infoActions.AutoSize = $true
-$infoActions.AutoSizeMode = "GrowAndShrink"
-$infoActions.WrapContents = $true
-$infoActions.FlowDirection = "LeftToRight"
-$infoActions.Location = New-Object System.Drawing.Point(0, 174)
-$infoActions.BackColor = $BgMain
+$settingsActions = New-Object System.Windows.Forms.FlowLayoutPanel
+$settingsActions.AutoSize = $true
+$settingsActions.AutoSizeMode = "GrowAndShrink"
+$settingsActions.WrapContents = $true
+$settingsActions.FlowDirection = "LeftToRight"
+$settingsActions.Location = New-Object System.Drawing.Point(0, 330)
+$settingsActions.BackColor = $BgMain
 
+$checkUpdateButton = New-UiButton -Text "Check"
+$checkUpdateButton.Width = 130
 $checkUpdateButton.Dock = "None"
-$checkUpdateButton.Width = 110
-$checkUpdateButton.Text = "Check Update"
 
-$updateButton.Dock = "None"
+$updateButton = New-UiButton -Text "Update"
 $updateButton.Width = 110
+$updateButton.Dock = "None"
 
-[void]$infoActions.Controls.Add($checkUpdateButton)
-[void]$infoActions.Controls.Add($updateButton)
+[void]$settingsActions.Controls.Add($checkUpdateButton)
+[void]$settingsActions.Controls.Add($updateButton)
 
 $infoPanel.Controls.Add($infoTitle)
 $infoPanel.Controls.Add($infoVersion)
 $infoPanel.Controls.Add($infoAuthor)
 $infoPanel.Controls.Add($infoRepoLabel)
 $infoPanel.Controls.Add($infoRepoLink)
-$infoPanel.Controls.Add($infoUpdateStatus)
-$infoPanel.Controls.Add($infoActions)
+$settingsPanel.Controls.Add($settingsTitle)
+$settingsPanel.Controls.Add($languageLabel)
+$settingsPanel.Controls.Add($languageCombo)
+$settingsPanel.Controls.Add($sortLabel)
+$settingsPanel.Controls.Add($sortCombo)
+$settingsPanel.Controls.Add($settingsAppInfoTitle)
+$settingsPanel.Controls.Add($settingsVersion)
+$settingsPanel.Controls.Add($settingsAuthor)
+$settingsPanel.Controls.Add($settingsRepoLabel)
+$settingsPanel.Controls.Add($settingsRepoLink)
+$settingsPanel.Controls.Add($settingsUpdateTitle)
+$settingsPanel.Controls.Add($infoUpdateStatus)
+$settingsPanel.Controls.Add($settingsActions)
 $mainPanel.Controls.Add($hostPanel)
 $mainPanel.Controls.Add($infoPanel)
+$mainPanel.Controls.Add($settingsPanel)
 $mainPanel.Controls.Add($tabNavPanel)
 
 $statusBar = New-Object System.Windows.Forms.StatusStrip
 $statusBar.BackColor = $BgPanel
 $statusLabel = New-Object System.Windows.Forms.ToolStripStatusLabel
-$statusLabel.Text = "Lade Hosts..."
+$statusLabel.Text = T "StatusLoadingHosts"
 $statusLabel.ForeColor = $FgMuted
 $versionStatusLabel = New-Object System.Windows.Forms.ToolStripStatusLabel
 $versionStatusLabel.Alignment = "Right"
 $versionStatusLabel.Spring = $true
 $versionStatusLabel.TextAlign = "MiddleRight"
-$versionStatusLabel.Text = "Version v$AppVersion"
+$versionStatusLabel.Text = T "VersionOnly" @($AppVersion)
 $versionStatusLabel.ForeColor = $FgMuted
 $statusBar.Items.Add($statusLabel) | Out-Null
 $statusBar.Items.Add($versionStatusLabel) | Out-Null
@@ -1354,13 +1689,13 @@ function Update-FilterSummary {
     $search = $searchBox.Text.Trim()
 
     if ($include.Count -eq 0 -and $exclude.Count -eq 0 -and [string]::IsNullOrWhiteSpace($search)) {
-        $filterResetButton.Text = "Filter: Alle"
+        $filterResetButton.Text = T "FilterAll"
         return
     }
 
     $parts = @()
     if (-not [string]::IsNullOrWhiteSpace($search)) {
-        $parts += "Suche: $search"
+        $parts += "$(T "SearchPrefix"): $search"
     }
     if ($include.Count -gt 0) {
         $parts += "+" + ($include -join ", +")
@@ -1369,13 +1704,58 @@ function Update-FilterSummary {
         $parts += "-" + ($exclude -join ", -")
     }
     $summary = $parts -join " | "
-    $filterResetButton.Text = "Filter: $(Get-ShortUiText -Text $summary -MaxLength 24)"
+    $filterResetButton.Text = "$(T "FilterPrefix"): $(Get-ShortUiText -Text $summary -MaxLength 24)"
+}
+
+function Update-Language {
+    $form.Text = "$AppName v$AppVersion"
+
+    $tagButton.Text = T "Tags"
+    $filterButton.Text = T "Filter"
+    $newHostButton.Text = T "NewHost"
+    $refreshButton.Text = T "Refresh"
+    $hostsTabButton.Text = T "Hosts"
+    $infoTabButton.Text = T "Info"
+    $settingsTabButton.Text = T "Settings"
+
+    $infoTitle.Text = $AppName
+    $infoVersion.Text = "{0}: v{1}" -f (T "VersionLabel"), $AppVersion
+    $infoAuthor.Text = "{0}: {1}" -f (T "AuthorLabel"), $AppAuthor
+    $infoRepoLabel.Text = "{0}:" -f (T "RepoLabel")
+
+    $settingsTitle.Text = T "SettingsTitle"
+    $languageLabel.Text = T "LanguageLabel"
+    $sortLabel.Text = T "SortLabel"
+    $settingsAppInfoTitle.Text = T "AppInfoTitle"
+    $settingsVersion.Text = "{0}: v{1}" -f (T "VersionLabel"), $AppVersion
+    $settingsAuthor.Text = "{0}: {1}" -f (T "AuthorLabel"), $AppAuthor
+    $settingsRepoLabel.Text = "{0}:" -f (T "RepoLabel")
+    $settingsUpdateTitle.Text = T "UpdateSection"
+    $checkUpdateButton.Text = T "CheckUpdate"
+    $updateButton.Text = T "Update"
+
+    foreach ($item in $languageCombo.Items) {
+        if ($item.Value -eq "de") { $item.Text = T "LanguageGerman" }
+        if ($item.Value -eq "en") { $item.Text = T "LanguageEnglish" }
+    }
+    foreach ($item in $sortCombo.Items) {
+        if ($item.Value -eq "host") { $item.Text = T "SortByHost" }
+        if ($item.Value -eq "tag") { $item.Text = T "SortByTag" }
+    }
+
+    $updateReason = if ($null -ne $script:LastUpdateStatus) { Format-UpdateStatusReason -UpdateStatus $script:LastUpdateStatus } else { T "VersionOnly" @($AppVersion) }
+    $infoUpdateStatus.Text = $updateReason
+    $versionStatusLabel.Text = $updateReason
+    Update-FilterSummary
+    if ($script:AllHosts.Count -gt 0) {
+        Update-HostFilter
+    }
 }
 
 function Show-HostButtons {
     param([array]$Hosts)
 
-    $sortedHosts = @($Hosts | Sort-Object Host)
+    $sortedHosts = @(Get-SortedHosts -Hosts $Hosts)
     $availableWidth = [math]::Max(200, $hostPanel.ClientSize.Width - $hostPanel.Padding.Left - $hostPanel.Padding.Right)
     $gap = 8
     $minCardWidth = 130
@@ -1402,7 +1782,10 @@ function Show-HostButtons {
         $button.Text = $entry.Host
         $button.Cursor = [System.Windows.Forms.Cursors]::Hand
         $tags = @(Get-HostTags -HostName $entry.Host)
-        $script:HostToolTip.SetToolTip($button, "Host: $($entry.Host)`r`nTags: $($tags -join ', ')`r`nQuelle: $($entry.SourceFile)")
+        $tooltipSourceLabel = if ((Get-UiLanguage) -eq "en") { "Source" } else { "Quelle" }
+        $tooltipTagsLabel = "Tags"
+        $tooltipHostLabel = "Host"
+        $script:HostToolTip.SetToolTip($button, "${tooltipHostLabel}: $($entry.Host)`r`n${tooltipTagsLabel}: $($tags -join ', ')`r`n${tooltipSourceLabel}: $($entry.SourceFile)")
         $button.Add_Click({
             param($controlSender, $clickEvent)
             Start-SshHost -HostName $controlSender.Tag
@@ -1424,8 +1807,8 @@ function Show-HostButtons {
 function Update-Hosts {
     if (-not (Test-Path $SshConfigPath)) {
         [System.Windows.Forms.MessageBox]::Show(
-            "Die Datei '$SshConfigPath' wurde nicht gefunden.",
-            "SSH-Config fehlt",
+            (T "MissingConfig" @($SshConfigPath)),
+            (T "MissingConfigTitle"),
             [System.Windows.Forms.MessageBoxButtons]::OK,
             [System.Windows.Forms.MessageBoxIcon]::Warning
         ) | Out-Null
@@ -1441,8 +1824,8 @@ function Update-Hosts {
     }
     catch {
         [System.Windows.Forms.MessageBox]::Show(
-            "Fehler beim Einlesen der SSH-Config.`n`n$($_.Exception.Message)",
-            "Lesefehler",
+            (T "ReadError" @($_.Exception.Message)),
+            (T "ReadErrorTitle"),
             [System.Windows.Forms.MessageBoxButtons]::OK,
             [System.Windows.Forms.MessageBoxIcon]::Error
         ) | Out-Null
@@ -1464,17 +1847,18 @@ function Update-HostFilter {
     }
 
     Show-HostButtons -Hosts $filtered
-    $statusLabel.Text = "$($filtered.Count) / $($script:AllHosts.Count) Host(s)"
+    $statusLabel.Text = T "StatusHosts" @($filtered.Count, $script:AllHosts.Count)
 }
 
 function Test-AppVersion {
     $checkUpdateButton.Enabled = $false
-    $infoUpdateStatus.Text = "Pruefe Update..."
-    $versionStatusLabel.Text = "Pruefe Update..."
+    $infoUpdateStatus.Text = T "UpdateChecking"
+    $versionStatusLabel.Text = T "UpdateChecking"
     [System.Windows.Forms.Application]::DoEvents()
 
     try {
-        $updateReason = (Get-UpdateStatus).Reason
+        $script:LastUpdateStatus = Get-UpdateStatus
+        $updateReason = Format-UpdateStatusReason -UpdateStatus $script:LastUpdateStatus
         $infoUpdateStatus.Text = $updateReason
         $versionStatusLabel.Text = $updateReason
     }
@@ -1487,19 +1871,25 @@ function Set-ActiveMainView {
     param([Parameter(Mandatory = $true)][string]$ViewName)
 
     $showHosts = $ViewName -eq "Hosts"
+    $showInfo = $ViewName -eq "Info"
+    $showSettings = $ViewName -eq "Settings"
     $hostPanel.Visible = $showHosts
-    $infoPanel.Visible = -not $showHosts
+    $infoPanel.Visible = $showInfo
+    $settingsPanel.Visible = $showSettings
 
     $hostsTabButton.BackColor = if ($showHosts) { $BgCardHover } else { $BgPanel }
     $hostsTabButton.ForeColor = if ($showHosts) { $FgMain } else { $FgMuted }
-    $infoTabButton.BackColor = if ($showHosts) { $BgPanel } else { $BgCardHover }
-    $infoTabButton.ForeColor = if ($showHosts) { $FgMuted } else { $FgMain }
+    $infoTabButton.BackColor = if ($showInfo) { $BgCardHover } else { $BgPanel }
+    $infoTabButton.ForeColor = if ($showInfo) { $FgMain } else { $FgMuted }
+    $settingsTabButton.BackColor = if ($showSettings) { $BgCardHover } else { $BgPanel }
+    $settingsTabButton.ForeColor = if ($showSettings) { $FgMain } else { $FgMuted }
 }
 
 $refreshButton.Add_Click({ Update-Hosts })
 $searchBox.Add_TextChanged({ Update-HostFilter })
 $hostsTabButton.Add_Click({ Set-ActiveMainView -ViewName "Hosts" })
 $infoTabButton.Add_Click({ Set-ActiveMainView -ViewName "Info" })
+$settingsTabButton.Add_Click({ Set-ActiveMainView -ViewName "Settings" })
 $filterResetButton.Add_Click({
     $searchBox.Text = ""
     $script:HostMeta.IncludeTags = @()
@@ -1534,6 +1924,18 @@ $newHostButton.Add_Click({
 
 $checkUpdateButton.Add_Click({ Test-AppVersion })
 $updateButton.Add_Click({ Update-AppFromGitHub })
+$languageCombo.Add_SelectedIndexChanged({
+    if ($null -eq $languageCombo.SelectedItem) { return }
+    $script:UiState.Language = [string]$languageCombo.SelectedItem.Value
+    Update-Language
+})
+$sortCombo.Add_SelectedIndexChanged({
+    if ($null -eq $sortCombo.SelectedItem) { return }
+    $script:UiState.SortMode = [string]$sortCombo.SelectedItem.Value
+    if ($script:AllHosts.Count -gt 0) {
+        Update-HostFilter
+    }
+})
 $hostPanel.Add_SizeChanged({
     if ($script:AllHosts.Count -gt 0) { Update-HostFilter }
 })
@@ -1547,6 +1949,25 @@ $form.Add_FormClosing({
 })
 
 $form.Add_Shown({
+    foreach ($item in $languageCombo.Items) {
+        if ($item.Value -eq $script:UiState.Language) {
+            $languageCombo.SelectedItem = $item
+            break
+        }
+    }
+    if ($null -eq $languageCombo.SelectedItem -and $languageCombo.Items.Count -gt 0) {
+        $languageCombo.SelectedIndex = 0
+    }
+    foreach ($item in $sortCombo.Items) {
+        if ($item.Value -eq $script:UiState.SortMode) {
+            $sortCombo.SelectedItem = $item
+            break
+        }
+    }
+    if ($null -eq $sortCombo.SelectedItem -and $sortCombo.Items.Count -gt 0) {
+        $sortCombo.SelectedIndex = 0
+    }
+    Update-Language
     Set-ActiveMainView -ViewName "Hosts"
     Update-FilterSummary
     Update-Hosts
