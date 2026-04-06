@@ -1,5 +1,16 @@
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
+if (-not ("NativeTheme" -as [type])) {
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+
+public static class NativeTheme {
+    [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
+    public static extern int SetWindowTheme(IntPtr hwnd, string pszSubAppName, string pszSubIdList);
+}
+"@
+}
 
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
@@ -21,7 +32,7 @@ $HostMetaPath = Join-Path $AppRoot "ssh-host-meta.json"
 $UiStatePath = Join-Path $AppRoot "ssh-host-ui.json"
 $AppName = "SSH Vault"
 $AppAuthor = "kanuracer"
-$AppVersion = "0.9.1"
+$AppVersion = "0.9.2"
 $GitHubRepo = "kanuracer/ssh-vault"
 $GitHubRepoUrl = "https://github.com/$GitHubRepo"
 $GitHubBranch = "main"
@@ -198,6 +209,19 @@ function Get-UiLanguage {
     }
     return $language
 }
+
+function Set-DarkControlTheme {
+    param([Parameter(Mandatory = $true)][System.Windows.Forms.Control]$Control)
+
+    try {
+        if (-not $Control.IsHandleCreated) {
+            $null = $Control.Handle
+        }
+        [void][NativeTheme]::SetWindowTheme($Control.Handle, "DarkMode_Explorer", $null)
+    }
+    catch {}
+}
+
 
 function T {
     param(
@@ -798,9 +822,11 @@ function Set-HostTagDialog {
     $tagList = New-Object System.Windows.Forms.CheckedListBox
     $tagList.Dock = "Fill"
     $tagList.CheckOnClick = $true
+    $tagList.IntegralHeight = $false
     $tagList.BackColor = $BgInput
     $tagList.ForeColor = $FgMain
     $tagList.BorderStyle = "FixedSingle"
+    Set-DarkControlTheme -Control $tagList
 
     $labelNewTags = New-Object System.Windows.Forms.Label
     $labelNewTags.Text = T "NewTags"
@@ -952,16 +978,20 @@ function Edit-TagFilterDialog {
     $includeList = New-Object System.Windows.Forms.CheckedListBox
     $includeList.Dock = "Fill"
     $includeList.CheckOnClick = $true
+    $includeList.IntegralHeight = $false
     $includeList.BackColor = $BgInput
     $includeList.ForeColor = $FgMain
     $includeList.BorderStyle = "FixedSingle"
+    Set-DarkControlTheme -Control $includeList
 
     $excludeList = New-Object System.Windows.Forms.CheckedListBox
     $excludeList.Dock = "Fill"
     $excludeList.CheckOnClick = $true
+    $excludeList.IntegralHeight = $false
     $excludeList.BackColor = $BgInput
     $excludeList.ForeColor = $FgMain
     $excludeList.BorderStyle = "FixedSingle"
+    Set-DarkControlTheme -Control $excludeList
 
     $buttonPanel = New-Object System.Windows.Forms.FlowLayoutPanel
     $buttonPanel.Dock = "Fill"
@@ -1334,6 +1364,11 @@ $script:HostMeta = Import-HostMeta -MetaPath $HostMetaPath
 $script:HostToolTip = New-Object System.Windows.Forms.ToolTip
 $script:UiState = Import-UiState -UiPath $UiStatePath
 $script:LastUpdateStatus = $null
+$script:HostScrollOffset = 0
+$script:HostContentHeight = 0
+$script:HostScrollDragging = $false
+$script:HostScrollDragStartY = 0
+$script:HostScrollDragStartOffset = 0
 
 $form = New-Object System.Windows.Forms.Form
 $form.Text = $WindowTitle
@@ -1484,9 +1519,36 @@ $settingsTabButton.Cursor = [System.Windows.Forms.Cursors]::Hand
 
 $hostPanel = New-Object System.Windows.Forms.Panel
 $hostPanel.Dock = "Fill"
-$hostPanel.AutoScroll = $true
-$hostPanel.Padding = New-Object System.Windows.Forms.Padding(6)
+$hostPanel.Padding = New-Object System.Windows.Forms.Padding(0)
 $hostPanel.BackColor = $BgMain
+
+$hostScrollBar = New-Object System.Windows.Forms.Panel
+$hostScrollBar.Dock = "Right"
+$hostScrollBar.Width = 12
+$hostScrollBar.Padding = New-Object System.Windows.Forms.Padding(2)
+$hostScrollBar.BackColor = $BgPanel
+$hostScrollBar.Visible = $false
+
+$hostScrollThumb = New-Object System.Windows.Forms.Panel
+$hostScrollThumb.Width = 8
+$hostScrollThumb.Height = 48
+$hostScrollThumb.BackColor = $Border
+$hostScrollThumb.Cursor = [System.Windows.Forms.Cursors]::Hand
+
+$hostViewport = New-Object System.Windows.Forms.Panel
+$hostViewport.Dock = "Fill"
+$hostViewport.Padding = New-Object System.Windows.Forms.Padding(6)
+$hostViewport.BackColor = $BgMain
+$hostViewport.TabStop = $true
+
+$hostCanvas = New-Object System.Windows.Forms.Panel
+$hostCanvas.Location = New-Object System.Drawing.Point($hostViewport.Padding.Left, $hostViewport.Padding.Top)
+$hostCanvas.BackColor = $BgMain
+
+$hostScrollBar.Controls.Add($hostScrollThumb)
+$hostViewport.Controls.Add($hostCanvas)
+$hostPanel.Controls.Add($hostViewport)
+$hostPanel.Controls.Add($hostScrollBar)
 
 $infoPanel = New-Object System.Windows.Forms.Panel
 $infoPanel.Dock = "Fill"
@@ -1723,15 +1785,52 @@ function Update-Language {
     }
 }
 
+function Get-HostViewportHeight {
+    return [math]::Max(1, $hostViewport.ClientSize.Height - $hostViewport.Padding.Top - $hostViewport.Padding.Bottom)
+}
+
+function Set-HostScrollOffset {
+    param([int]$Offset)
+
+    $viewportHeight = Get-HostViewportHeight
+    $maxOffset = [math]::Max(0, $script:HostContentHeight - $viewportHeight)
+    $script:HostScrollOffset = [math]::Max(0, [math]::Min($Offset, $maxOffset))
+    $hostCanvas.Location = New-Object System.Drawing.Point($hostViewport.Padding.Left, ($hostViewport.Padding.Top - $script:HostScrollOffset))
+}
+
+function Update-HostScrollState {
+    $viewportHeight = Get-HostViewportHeight
+    $needsScroll = $script:HostContentHeight -gt $viewportHeight
+
+    $hostScrollBar.Visible = $needsScroll
+    if (-not $needsScroll) {
+        $script:HostScrollOffset = 0
+        $hostCanvas.Location = New-Object System.Drawing.Point($hostViewport.Padding.Left, $hostViewport.Padding.Top)
+        return
+    }
+
+    Set-HostScrollOffset -Offset $script:HostScrollOffset
+
+    $trackHeight = [math]::Max(1, $hostScrollBar.ClientSize.Height - $hostScrollBar.Padding.Top - $hostScrollBar.Padding.Bottom)
+    $thumbHeight = [math]::Max(36, [math]::Floor(($trackHeight * $viewportHeight) / [math]::Max(1, $script:HostContentHeight)))
+    $thumbHeight = [math]::Min($trackHeight, $thumbHeight)
+    $maxOffset = [math]::Max(1, $script:HostContentHeight - $viewportHeight)
+    $travel = [math]::Max(0, $trackHeight - $thumbHeight)
+    $thumbTop = $hostScrollBar.Padding.Top + [math]::Floor(($travel * $script:HostScrollOffset) / $maxOffset)
+    $hostScrollThumb.Location = New-Object System.Drawing.Point($hostScrollBar.Padding.Left, $thumbTop)
+    $hostScrollThumb.Size = New-Object System.Drawing.Size(($hostScrollBar.ClientSize.Width - $hostScrollBar.Padding.Left - $hostScrollBar.Padding.Right), $thumbHeight)
+}
+
 function Show-HostButtons {
     param([array]$Hosts)
 
-    $hostPanel.SuspendLayout()
-    $hostPanel.Controls.Clear()
-    $maxBottom = $hostPanel.Padding.Top
+    $hostCanvas.SuspendLayout()
+    $hostCanvas.Controls.Clear()
+    $script:HostScrollOffset = 0
+    $maxBottom = 0
     $gap = 8
     $buttonHeight = 42
-    $availableWidth = [math]::Max(200, $hostPanel.ClientSize.Width - $hostPanel.Padding.Left - $hostPanel.Padding.Right)
+    $availableWidth = [math]::Max(200, $hostViewport.ClientSize.Width - $hostViewport.Padding.Left - $hostViewport.Padding.Right)
 
     if ((Get-CurrentSortMode) -eq "tag") {
         $groupMap = [ordered]@{}
@@ -1758,23 +1857,23 @@ function Show-HostButtons {
         foreach ($groupName in ($groupMap.Keys | Sort-Object)) {
             $header = New-Object System.Windows.Forms.Label
             $header.Text = $groupName
-            $header.Location = New-Object System.Drawing.Point($hostPanel.Padding.Left, $y)
+            $header.Location = New-Object System.Drawing.Point(0, $y)
             $header.Size = New-Object System.Drawing.Size($availableWidth, 24)
             $header.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 11)
             $header.ForeColor = $FgMain
-            $hostPanel.Controls.Add($header)
+            $hostCanvas.Controls.Add($header)
             $y += 24
 
             $separator = New-Object System.Windows.Forms.Panel
-            $separator.Location = New-Object System.Drawing.Point($hostPanel.Padding.Left, $y)
+            $separator.Location = New-Object System.Drawing.Point(0, $y)
             $separator.Size = New-Object System.Drawing.Size([math]::Min(220, $availableWidth), 1)
             $separator.BackColor = $Border
-            $hostPanel.Controls.Add($separator)
+            $hostCanvas.Controls.Add($separator)
             $y += 8
 
             foreach ($entry in ($groupMap[$groupName] | Sort-Object Host -Unique)) {
                 $button = New-Object System.Windows.Forms.Button
-                $button.Location = New-Object System.Drawing.Point($hostPanel.Padding.Left, $y)
+                $button.Location = New-Object System.Drawing.Point(0, $y)
                 $button.Size = New-Object System.Drawing.Size($availableWidth, $buttonHeight)
                 $button.FlatStyle = "Flat"
                 $button.FlatAppearance.BorderColor = $Border
@@ -1796,7 +1895,12 @@ function Show-HostButtons {
                     param($controlSender, $clickEvent)
                     Start-SshHost -HostName $controlSender.Tag
                 })
-                $hostPanel.Controls.Add($button)
+                $button.Add_MouseWheel({
+                    param($controlSender, $wheelEvent)
+                    Set-HostScrollOffset -Offset ($script:HostScrollOffset - [int]($wheelEvent.Delta / 3))
+                    Update-HostScrollState
+                })
+                $hostCanvas.Controls.Add($button)
                 $y += $buttonHeight + 6
             }
 
@@ -1835,20 +1939,28 @@ function Show-HostButtons {
                 param($controlSender, $clickEvent)
                 Start-SshHost -HostName $controlSender.Tag
             })
+            $button.Add_MouseWheel({
+                param($controlSender, $wheelEvent)
+                Set-HostScrollOffset -Offset ($script:HostScrollOffset - [int]($wheelEvent.Delta / 3))
+                Update-HostScrollState
+            })
 
             $columnIndex = $index % $columns
             $rowIndex = [math]::Floor($index / $columns)
-            $x = $hostPanel.Padding.Left + ($columnIndex * ($cardWidth + $gap))
-            $y = $hostPanel.Padding.Top + ($rowIndex * ($button.Height + $gap))
+            $x = $columnIndex * ($cardWidth + $gap)
+            $y = $rowIndex * ($button.Height + $gap)
             $button.Location = New-Object System.Drawing.Point($x, $y)
             $index++
             $maxBottom = [math]::Max($maxBottom, $y + $button.Height)
-            $hostPanel.Controls.Add($button)
+            $hostCanvas.Controls.Add($button)
         }
     }
 
-    $hostPanel.AutoScrollMinSize = [System.Drawing.Size]::new(0, ($maxBottom + $hostPanel.Padding.Bottom))
-    $hostPanel.ResumeLayout()
+    $script:HostContentHeight = [math]::Max(0, $maxBottom)
+    $hostCanvas.Size = New-Object System.Drawing.Size($availableWidth, [math]::Max($script:HostContentHeight, (Get-HostViewportHeight)))
+    $hostCanvas.Location = New-Object System.Drawing.Point($hostViewport.Padding.Left, $hostViewport.Padding.Top)
+    $hostCanvas.ResumeLayout()
+    Update-HostScrollState
 }
 
 function Update-Hosts {
@@ -1983,8 +2095,58 @@ $sortCombo.Add_SelectedIndexChanged({
         Update-HostFilter
     }
 })
+$hostViewport.Add_MouseWheel({
+    param($controlSender, $wheelEvent)
+    Set-HostScrollOffset -Offset ($script:HostScrollOffset - [int]($wheelEvent.Delta / 3))
+    Update-HostScrollState
+})
+$hostCanvas.Add_MouseWheel({
+    param($controlSender, $wheelEvent)
+    Set-HostScrollOffset -Offset ($script:HostScrollOffset - [int]($wheelEvent.Delta / 3))
+    Update-HostScrollState
+})
+$hostScrollBar.Add_MouseDown({
+    param($controlSender, $mouseEvent)
+    if (-not $hostScrollBar.Visible) { return }
+    $trackHeight = [math]::Max(1, $hostScrollBar.ClientSize.Height - $hostScrollBar.Padding.Top - $hostScrollBar.Padding.Bottom)
+    $thumbHeight = $hostScrollThumb.Height
+    $travel = [math]::Max(1, $trackHeight - $thumbHeight)
+    $clickY = $mouseEvent.Y - $hostScrollBar.Padding.Top - [math]::Floor($thumbHeight / 2)
+    $ratio = [math]::Max(0, [math]::Min(1, ($clickY / $travel)))
+    $maxOffset = [math]::Max(0, $script:HostContentHeight - (Get-HostViewportHeight))
+    Set-HostScrollOffset -Offset ([math]::Round($ratio * $maxOffset))
+    Update-HostScrollState
+})
+$hostScrollThumb.Add_MouseDown({
+    param($controlSender, $mouseEvent)
+    $script:HostScrollDragging = $true
+    $script:HostScrollDragStartY = $mouseEvent.Y
+    $script:HostScrollDragStartOffset = $script:HostScrollOffset
+})
+$hostScrollThumb.Add_MouseMove({
+    param($controlSender, $mouseEvent)
+    if (-not $script:HostScrollDragging) { return }
+    $trackHeight = [math]::Max(1, $hostScrollBar.ClientSize.Height - $hostScrollBar.Padding.Top - $hostScrollBar.Padding.Bottom)
+    $travel = [math]::Max(1, $trackHeight - $hostScrollThumb.Height)
+    $maxOffset = [math]::Max(0, $script:HostContentHeight - (Get-HostViewportHeight))
+    $delta = $mouseEvent.Y - $script:HostScrollDragStartY
+    $newOffset = $script:HostScrollDragStartOffset + [math]::Round(($delta * $maxOffset) / $travel)
+    Set-HostScrollOffset -Offset $newOffset
+    Update-HostScrollState
+})
+$hostScrollThumb.Add_MouseUp({
+    $script:HostScrollDragging = $false
+})
+$hostViewport.Add_SizeChanged({
+    if ($script:AllHosts.Count -gt 0) { Update-HostFilter }
+    else { Update-HostScrollState }
+})
+$hostScrollBar.Add_SizeChanged({
+    Update-HostScrollState
+})
 $hostPanel.Add_SizeChanged({
     if ($script:AllHosts.Count -gt 0) { Update-HostFilter }
+    else { Update-HostScrollState }
 })
 
 $form.Add_FormClosing({
