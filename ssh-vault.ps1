@@ -21,10 +21,11 @@ $HostMetaPath = Join-Path $AppRoot "ssh-host-meta.json"
 $UiStatePath = Join-Path $AppRoot "ssh-host-ui.json"
 $AppName = "SSH Vault"
 $AppAuthor = "kanuracer"
-$AppVersion = "0.8.4"
+$AppVersion = "0.8.5"
 $GitHubRepo = "kanuracer/ssh-vault"
 $GitHubRepoUrl = "https://github.com/$GitHubRepo"
 $GitHubBranch = "main"
+$AppLogoPath = Join-Path $AppRoot "logo.png"
 $WindowTitle = "$AppName v$AppVersion"
 
 # Dark theme colors
@@ -688,8 +689,8 @@ function New-UiButton {
 
 function Get-DefaultUiState {
     return @{
-        Width = 820
-        Height = 560
+        Width = 720
+        Height = 520
         Left = -1
         Top = -1
     }
@@ -710,6 +711,11 @@ function Import-UiState {
         if ($raw.Top -ge 0) { $state.Top = [int]$raw.Top }
     }
     catch {}
+
+    # Keep the app compact by default even when older UI state files were saved very wide.
+    if ($state.Width -gt 720) { $state.Width = 720 }
+    if ($state.Height -gt 560) { $state.Height = 560 }
+
     return $state
 }
 
@@ -791,6 +797,48 @@ function Get-CurrentScriptPath {
     if ($PSCommandPath) { return $PSCommandPath }
     if ($MyInvocation.MyCommand.Path) { return $MyInvocation.MyCommand.Path }
     return (Join-Path $AppRoot "ssh-vault.ps1")
+}
+
+function Resolve-AppLogoPath {
+    param([Parameter(Mandatory = $true)][string]$ImagePath)
+
+    if (Test-Path $ImagePath) {
+        return $ImagePath
+    }
+
+    try {
+        $logoUrl = "https://raw.githubusercontent.com/$GitHubRepo/$GitHubBranch/logo.png"
+        Invoke-WebRequest -Uri $logoUrl -Headers (Get-GitHubHeaders) -OutFile $ImagePath -UseBasicParsing -TimeoutSec 15
+        if (Test-Path $ImagePath) {
+            return $ImagePath
+        }
+    }
+    catch {
+        return $null
+    }
+
+    return $null
+}
+
+function Get-AppIcon {
+    param([Parameter(Mandatory = $true)][string]$ImagePath)
+
+    if (-not (Test-Path $ImagePath)) {
+        return $null
+    }
+
+    try {
+        $bitmap = New-Object System.Drawing.Bitmap($ImagePath)
+        $hIcon = $bitmap.GetHicon()
+        $icon = [System.Drawing.Icon]::FromHandle($hIcon)
+        $clonedIcon = [System.Drawing.Icon]$icon.Clone()
+        $icon.Dispose()
+        $bitmap.Dispose()
+        return $clonedIcon
+    }
+    catch {
+        return $null
+    }
 }
 
 function Get-GitHubHeaders {
@@ -878,7 +926,12 @@ if ($script:UiState.Left -ge 0 -and $script:UiState.Top -ge 0) {
     $form.StartPosition = "Manual"
     $form.Location = New-Object System.Drawing.Point($script:UiState.Left, $script:UiState.Top)
 }
-$form.MinimumSize = New-Object System.Drawing.Size(620, 400)
+$resolvedAppLogoPath = Resolve-AppLogoPath -ImagePath $AppLogoPath
+$appIcon = if ($null -ne $resolvedAppLogoPath) { Get-AppIcon -ImagePath $resolvedAppLogoPath } else { $null }
+if ($null -ne $appIcon) {
+    $form.Icon = $appIcon
+}
+$form.MinimumSize = New-Object System.Drawing.Size(600, 380)
 $form.BackColor = $BgMain
 $form.ForeColor = $FgMain
 $form.Font = New-Object System.Drawing.Font("Segoe UI", 9)
