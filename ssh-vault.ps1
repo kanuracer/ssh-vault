@@ -21,7 +21,7 @@ $HostMetaPath = Join-Path $AppRoot "ssh-host-meta.json"
 $UiStatePath = Join-Path $AppRoot "ssh-host-ui.json"
 $AppName = "SSH Vault"
 $AppAuthor = "kanuracer"
-$AppVersion = "0.8.8"
+$AppVersion = "0.8.9"
 $GitHubRepo = "kanuracer/ssh-vault"
 $GitHubRepoUrl = "https://github.com/$GitHubRepo"
 $GitHubBranch = "main"
@@ -964,6 +964,27 @@ function Get-CurrentScriptPath {
     return (Join-Path $AppRoot "ssh-vault.ps1")
 }
 
+function Get-ShortUiText {
+    param(
+        [Parameter(Mandatory = $true)][string]$Text,
+        [int]$MaxLength = 24
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Text)) {
+        return ""
+    }
+
+    if ($Text.Length -le $MaxLength) {
+        return $Text
+    }
+
+    if ($MaxLength -le 3) {
+        return "..."
+    }
+
+    return $Text.Substring(0, ($MaxLength - 3)) + "..."
+}
+
 function Resolve-AppLogoPath {
     param([Parameter(Mandatory = $true)][string]$ImagePath)
 
@@ -1096,7 +1117,7 @@ $appIcon = if ($null -ne $resolvedAppLogoPath) { Get-AppIcon -ImagePath $resolve
 if ($null -ne $appIcon) {
     $form.Icon = $appIcon
 }
-$form.MinimumSize = New-Object System.Drawing.Size(580, 380)
+$form.MinimumSize = New-Object System.Drawing.Size(580, 470)
 $form.BackColor = $BgMain
 $form.ForeColor = $FgMain
 $form.Font = New-Object System.Drawing.Font("Segoe UI", 9)
@@ -1134,14 +1155,17 @@ $searchBox.BorderStyle = "None"
 $searchBox.Font = New-Object System.Drawing.Font("Segoe UI", 9)
 $searchWrap.Controls.Add($searchBox)
 
-$filterSummaryBox = New-Object System.Windows.Forms.TextBox
-$filterSummaryBox.Dock = "Fill"
-$filterSummaryBox.Margin = New-Object System.Windows.Forms.Padding(3)
-$filterSummaryBox.ReadOnly = $true
-$filterSummaryBox.BackColor = $BgInput
-$filterSummaryBox.ForeColor = $FgMain
-$filterSummaryBox.BorderStyle = "FixedSingle"
-$filterSummaryBox.Text = "Alle"
+$filterResetButton = New-Object System.Windows.Forms.Button
+$filterResetButton.Dock = "Fill"
+$filterResetButton.Margin = New-Object System.Windows.Forms.Padding(3)
+$filterResetButton.Text = "Filter: Alle"
+$filterResetButton.BackColor = $BgInput
+$filterResetButton.ForeColor = $FgMain
+$filterResetButton.FlatStyle = "Flat"
+$filterResetButton.FlatAppearance.BorderColor = $Border
+$filterResetButton.FlatAppearance.MouseOverBackColor = $BgCardHover
+$filterResetButton.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+$filterResetButton.Cursor = [System.Windows.Forms.Cursors]::Hand
 
 $headerActions = New-Object System.Windows.Forms.FlowLayoutPanel
 $headerActions.Dock = "Top"
@@ -1171,7 +1195,7 @@ $updateButton.Width = 80
 $updateButton.Dock = "None"
 
 [void]$headerGrid.Controls.Add($searchWrap, 0, 0)
-[void]$headerGrid.Controls.Add($filterSummaryBox, 1, 0)
+[void]$headerGrid.Controls.Add($filterResetButton, 1, 0)
 [void]$headerActions.Controls.Add($tagButton)
 [void]$headerActions.Controls.Add($filterButton)
 [void]$headerActions.Controls.Add($newHostButton)
@@ -1327,20 +1351,25 @@ $form.Controls.Add($statusBar)
 function Update-FilterSummary {
     $include = @($script:HostMeta.IncludeTags)
     $exclude = @($script:HostMeta.ExcludeTags)
+    $search = $searchBox.Text.Trim()
 
-    if ($include.Count -eq 0 -and $exclude.Count -eq 0) {
-        $filterSummaryBox.Text = "Alle"
+    if ($include.Count -eq 0 -and $exclude.Count -eq 0 -and [string]::IsNullOrWhiteSpace($search)) {
+        $filterResetButton.Text = "Filter: Alle"
         return
     }
 
     $parts = @()
+    if (-not [string]::IsNullOrWhiteSpace($search)) {
+        $parts += "Suche: $search"
+    }
     if ($include.Count -gt 0) {
         $parts += "+" + ($include -join ", +")
     }
     if ($exclude.Count -gt 0) {
         $parts += "-" + ($exclude -join ", -")
     }
-    $filterSummaryBox.Text = ($parts -join "   ")
+    $summary = $parts -join " | "
+    $filterResetButton.Text = "Filter: $(Get-ShortUiText -Text $summary -MaxLength 24)"
 }
 
 function Show-HostButtons {
@@ -1359,7 +1388,6 @@ function Show-HostButtons {
     $index = 0
     $maxBottom = $hostPanel.Padding.Top
     foreach ($entry in $sortedHosts) {
-        $tags = @(Get-HostTags -HostName $entry.Host)
         $button = New-Object System.Windows.Forms.Button
         $button.Width = $cardWidth
         $button.Height = 46
@@ -1372,10 +1400,8 @@ function Show-HostButtons {
         $button.TextAlign = "MiddleCenter"
         $button.Tag = $entry.Host
         $button.Text = $entry.Host
-        if ($tags.Count -gt 0) {
-            $button.Text = "$($entry.Host)`r`n[$($tags -join ', ')]"
-        }
         $button.Cursor = [System.Windows.Forms.Cursors]::Hand
+        $tags = @(Get-HostTags -HostName $entry.Host)
         $script:HostToolTip.SetToolTip($button, "Host: $($entry.Host)`r`nTags: $($tags -join ', ')`r`nQuelle: $($entry.SourceFile)")
         $button.Add_Click({
             param($controlSender, $clickEvent)
@@ -1474,6 +1500,14 @@ $refreshButton.Add_Click({ Update-Hosts })
 $searchBox.Add_TextChanged({ Update-HostFilter })
 $hostsTabButton.Add_Click({ Set-ActiveMainView -ViewName "Hosts" })
 $infoTabButton.Add_Click({ Set-ActiveMainView -ViewName "Info" })
+$filterResetButton.Add_Click({
+    $searchBox.Text = ""
+    $script:HostMeta.IncludeTags = @()
+    $script:HostMeta.ExcludeTags = @()
+    Export-HostMeta -MetaPath $HostMetaPath -Meta $script:HostMeta
+    Update-FilterSummary
+    Update-HostFilter
+})
 
 $tagButton.Add_Click({
     $changedHost = Set-HostTagDialog -Hosts $script:AllHosts
