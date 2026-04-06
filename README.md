@@ -8,19 +8,15 @@ It was built as an SSH shortcut and bookmark tool for an OpenSSH-based workflow 
 
 ### Default Host View
 
-![Default host view](media/hostpage_default.png)
+<p align="center">
+  <img src="media/hostpage_default.png" alt="Default host view" width="48%" />
+  <img src="media/filter_hostpage.png" alt="Filtered host view" width="48%" />
+</p>
 
-### Filtered Host View
-
-![Filtered host view](media/filter_hostpage.png)
-
-### Tag-Based Grouping
-
-![Hosts grouped by tag](media/list_by_tag.png)
-
-### Settings
-
-![Settings tab](media/settings.png)
+<p align="center">
+  <img src="media/list_by_tag.png" alt="Hosts grouped by tag" width="48%" />
+  <img src="media/settings.png" alt="Settings tab" width="48%" />
+</p>
 
 ## Features
 
@@ -86,13 +82,10 @@ You can manage hosts directly in the UI:
 
 If a `Host` line contains multiple aliases, SSH Vault removes only the selected alias from that line.
 
-### Add Host
-
-![Create host dialog](media/create_host.png)
-
-### Delete Host
-
-![Delete host dialog](media/del_host.png)
+<p align="center">
+  <img src="media/create_host.png" alt="Create host dialog" width="48%" />
+  <img src="media/del_host.png" alt="Delete host dialog" width="48%" />
+</p>
 
 ## Tags and Filters
 
@@ -110,13 +103,10 @@ When sorting by tag, the host list is grouped by tag.
 
 Hosts without tags are shown in a separate group.
 
-### Edit Tags
-
-![Edit tags dialog](media/edit_tags.png)
-
-### Filter By Tags
-
-![Filter dialog](media/filter_by.png)
+<p align="center">
+  <img src="media/edit_tags.png" alt="Edit tags dialog" width="48%" />
+  <img src="media/filter_by.png" alt="Filter dialog" width="48%" />
+</p>
 
 ## Settings
 
