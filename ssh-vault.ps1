@@ -21,7 +21,7 @@ $HostMetaPath = Join-Path $AppRoot "ssh-host-meta.json"
 $UiStatePath = Join-Path $AppRoot "ssh-host-ui.json"
 $AppName = "SSH Vault"
 $AppAuthor = "kanuracer"
-$AppVersion = "0.8.7"
+$AppVersion = "0.8.8"
 $GitHubRepo = "kanuracer/ssh-vault"
 $GitHubRepoUrl = "https://github.com/$GitHubRepo"
 $GitHubBranch = "main"
@@ -1391,7 +1391,7 @@ function Show-HostButtons {
         $maxBottom = [math]::Max($maxBottom, $y + $button.Height)
         $hostPanel.Controls.Add($button)
     }
-    $hostPanel.AutoScrollMinSize = New-Object System.Drawing.Size(0, $maxBottom + $hostPanel.Padding.Bottom)
+    $hostPanel.AutoScrollMinSize = [System.Drawing.Size]::new(0, ($maxBottom + $hostPanel.Padding.Bottom))
     $hostPanel.ResumeLayout()
 }
 
