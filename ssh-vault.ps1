@@ -32,7 +32,7 @@ $HostMetaPath = Join-Path $AppRoot "ssh-host-meta.json"
 $UiStatePath = Join-Path $AppRoot "ssh-host-ui.json"
 $AppName = "SSH Vault"
 $AppAuthor = "kanuracer"
-$AppVersion = "1.0.3"
+$AppVersion = "1.0.5"
 $GitHubRepo = "kanuracer/ssh-vault"
 $GitHubRepoUrl = "https://github.com/$GitHubRepo"
 $GitHubBranch = "main"
@@ -607,6 +607,7 @@ function Add-SshConfigContent {
         [string]$ConfigPath,
 
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [string[]]$EntryLines
     )
 
@@ -2269,19 +2270,8 @@ function Show-HostButtons {
 }
 
 function Update-Hosts {
-    if (-not (Test-Path $SshConfigPath)) {
-        [System.Windows.Forms.MessageBox]::Show(
-            (T "MissingConfig" @($SshConfigPath)),
-            (T "MissingConfigTitle"),
-            [System.Windows.Forms.MessageBoxButtons]::OK,
-            [System.Windows.Forms.MessageBoxIcon]::Warning
-        ) | Out-Null
-        $script:AllHosts = @()
-        Show-HostButtons -Hosts @()
-        return
-    }
-
     try {
+        Ensure-SshConfigFile -ConfigPath $SshConfigPath
         $script:AllHosts = @(Get-SshHostsFromConfig -ConfigPath $SshConfigPath)
         Update-FilterSummary
         Update-HostFilter
