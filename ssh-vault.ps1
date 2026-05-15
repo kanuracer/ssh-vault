@@ -32,7 +32,7 @@ $HostMetaPath = Join-Path $AppRoot "ssh-host-meta.json"
 $UiStatePath = Join-Path $AppRoot "ssh-host-ui.json"
 $AppName = "SSH Vault"
 $AppAuthor = "kanuracer"
-$AppVersion = "1.0.5"
+$AppVersion = "1.0.9"
 $GitHubRepo = "kanuracer/ssh-vault"
 $GitHubRepoUrl = "https://github.com/$GitHubRepo"
 $GitHubBranch = "main"
@@ -565,6 +565,22 @@ function Start-SshHost {
     }
 }
 
+function Grant-SshConfigPathAccess {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    $icacls = Get-Command icacls.exe -ErrorAction SilentlyContinue
+    if ($null -eq $icacls) {
+        return $false
+    }
+
+    $grantTarget = "{0}:F" -f $env:USERNAME
+    & $icacls.Source $Path /grant $grantTarget /T /C | Out-Null
+    return ($LASTEXITCODE -eq 0)
+}
+
 function Ensure-SshConfigFile {
     param(
         [Parameter(Mandatory = $true)]
@@ -576,9 +592,27 @@ function Ensure-SshConfigFile {
         New-Item -Path $configDirectory -ItemType Directory -Force | Out-Null
     }
 
+    Grant-SshConfigPathAccess -Path $ConfigPath | Out-Null
+
+    if (Test-Path -LiteralPath $ConfigPath -PathType Container) {
+        Grant-SshConfigPathAccess -Path $ConfigPath | Out-Null
+
+        $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+        $backupDirectory = Join-Path $configDirectory "config.backup-dir-$timestamp"
+        $suffix = 1
+        while (Test-Path -LiteralPath $backupDirectory) {
+            $backupDirectory = Join-Path $configDirectory "config.backup-dir-$timestamp-$suffix"
+            $suffix++
+        }
+
+        Move-Item -LiteralPath $ConfigPath -Destination $backupDirectory -Force -ErrorAction Stop
+    }
+
     if (-not (Test-Path -LiteralPath $ConfigPath)) {
         New-Item -Path $ConfigPath -ItemType File -Force | Out-Null
     }
+
+    Grant-SshConfigPathAccess -Path $ConfigPath | Out-Null
 }
 
 function Set-SshConfigWritable {
@@ -673,6 +707,10 @@ function Repair-SshConfigPermissions {
         return $true
     }
     catch {
+        if (Grant-SshConfigPathAccess -Path $ConfigPath) {
+            return $true
+        }
+
         [System.Windows.Forms.MessageBox]::Show(
             "Rechte fuer '$ConfigPath' konnten nicht gesetzt werden.`n`n$($_.Exception.Message)",
             "Berechtigungsfehler",
