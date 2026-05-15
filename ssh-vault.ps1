@@ -32,7 +32,7 @@ $HostMetaPath = Join-Path $AppRoot "ssh-host-meta.json"
 $UiStatePath = Join-Path $AppRoot "ssh-host-ui.json"
 $AppName = "SSH Vault"
 $AppAuthor = "kanuracer"
-$AppVersion = "1.0.2"
+$AppVersion = "1.0.3"
 $GitHubRepo = "kanuracer/ssh-vault"
 $GitHubRepoUrl = "https://github.com/$GitHubRepo"
 $GitHubBranch = "main"
@@ -581,6 +581,55 @@ function Ensure-SshConfigFile {
     }
 }
 
+function Set-SshConfigWritable {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ConfigPath
+    )
+
+    if (-not (Test-Path -LiteralPath $ConfigPath)) {
+        return
+    }
+
+    $configFile = Get-Item -LiteralPath $ConfigPath -Force -ErrorAction SilentlyContinue
+    if ($null -eq $configFile) {
+        return
+    }
+
+    if (($configFile.Attributes -band [System.IO.FileAttributes]::ReadOnly) -ne 0) {
+        $configFile.Attributes = $configFile.Attributes -band (-bnot [System.IO.FileAttributes]::ReadOnly)
+    }
+}
+
+function Add-SshConfigContent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ConfigPath,
+
+        [Parameter(Mandatory = $true)]
+        [string[]]$EntryLines
+    )
+
+    Ensure-SshConfigFile -ConfigPath $ConfigPath
+    Set-SshConfigWritable -ConfigPath $ConfigPath
+
+    $content = $EntryLines -join [Environment]::NewLine
+
+    try {
+        Add-Content -LiteralPath $ConfigPath -Value $content -ErrorAction Stop
+        return
+    }
+    catch [System.UnauthorizedAccessException] {
+        Set-SshConfigWritable -ConfigPath $ConfigPath
+        $permissionsRepaired = Repair-SshConfigPermissions -ConfigPath $ConfigPath
+        if (-not $permissionsRepaired) {
+            throw
+        }
+
+        Add-Content -LiteralPath $ConfigPath -Value $content -ErrorAction Stop
+    }
+}
+
 function Repair-SshConfigPermissions {
     param(
         [Parameter(Mandatory = $true)]
@@ -780,7 +829,7 @@ function New-HostEntry {
                     $entryLines.Add("    Port $port") | Out-Null
                 }
 
-                Add-Content -Path $ConfigPath -Value ($entryLines -join [Environment]::NewLine)
+                Add-SshConfigContent -ConfigPath $ConfigPath -EntryLines @($entryLines)
                 $script:NewHostAlias = $alias
                 $dialog.DialogResult = [System.Windows.Forms.DialogResult]::OK
                 $dialog.Close()
