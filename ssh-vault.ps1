@@ -32,7 +32,7 @@ $HostMetaPath = Join-Path $AppRoot "ssh-host-meta.json"
 $UiStatePath = Join-Path $AppRoot "ssh-host-ui.json"
 $AppName = "SSH Vault"
 $AppAuthor = "kanuracer"
-$AppVersion = "1.0.0"
+$AppVersion = "1.0.1"
 $GitHubRepo = "kanuracer/ssh-vault"
 $GitHubRepoUrl = "https://github.com/$GitHubRepo"
 $GitHubBranch = "main"
@@ -286,18 +286,23 @@ function Get-HostSortKey {
 }
 
 function Get-SortedHosts {
-    param([Parameter(Mandatory = $true)][array]$Hosts)
+    param([array]$Hosts = @())
+
+    $hostList = @($Hosts)
+    if ($hostList.Count -eq 0) {
+        return @()
+    }
 
     if ((Get-CurrentSortMode) -eq "tag") {
         return @(
-            $Hosts |
+            $hostList |
                 Sort-Object -Property `
                     @{ Expression = { Get-HostSortKey -HostName $_.Host } }, `
                     @{ Expression = { $_.Host.ToLowerInvariant() } }
         )
     }
 
-    return @($Hosts | Sort-Object -Property @{ Expression = { $_.Host.ToLowerInvariant() } })
+    return @($hostList | Sort-Object -Property @{ Expression = { $_.Host.ToLowerInvariant() } })
 }
 
 function Resolve-SshConfigIncludes {
@@ -2059,7 +2064,9 @@ function Update-HostScrollState {
 }
 
 function Show-HostButtons {
-    param([array]$Hosts)
+    param([array]$Hosts = @())
+
+    $Hosts = @($Hosts)
 
     $hostCanvas.SuspendLayout()
     $hostCanvas.Controls.Clear()
@@ -2233,14 +2240,14 @@ function Update-HostFilter {
     $includeTags = @($script:HostMeta.IncludeTags)
     $excludeTags = @($script:HostMeta.ExcludeTags)
 
-    $filtered = $script:AllHosts | Where-Object {
+    $filtered = @($script:AllHosts | Where-Object {
         $matchSearch = [string]::IsNullOrWhiteSpace($filter) -or $_.Host -like "*$filter*"
         if (-not $matchSearch) { return $false }
         $hostTags = @(Get-HostTags -HostName $_.Host)
         $matchesInclude = ($includeTags.Count -eq 0) -or (@($hostTags | Where-Object { $includeTags -contains $_ }).Count -gt 0)
         $matchesExclude = (@($hostTags | Where-Object { $excludeTags -contains $_ }).Count -eq 0)
         return ($matchesInclude -and $matchesExclude)
-    }
+    })
 
     Show-HostButtons -Hosts $filtered
     $statusLabel.Text = T "StatusHosts" @($filtered.Count, $script:AllHosts.Count)
