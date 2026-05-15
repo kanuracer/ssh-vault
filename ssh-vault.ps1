@@ -32,7 +32,7 @@ $HostMetaPath = Join-Path $AppRoot "ssh-host-meta.json"
 $UiStatePath = Join-Path $AppRoot "ssh-host-ui.json"
 $AppName = "SSH Vault"
 $AppAuthor = "kanuracer"
-$AppVersion = "1.0.1"
+$AppVersion = "1.0.2"
 $GitHubRepo = "kanuracer/ssh-vault"
 $GitHubRepoUrl = "https://github.com/$GitHubRepo"
 $GitHubBranch = "main"
@@ -565,6 +565,22 @@ function Start-SshHost {
     }
 }
 
+function Ensure-SshConfigFile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ConfigPath
+    )
+
+    $configDirectory = Split-Path -Path $ConfigPath -Parent
+    if (-not [string]::IsNullOrWhiteSpace($configDirectory) -and -not (Test-Path -LiteralPath $configDirectory)) {
+        New-Item -Path $configDirectory -ItemType Directory -Force | Out-Null
+    }
+
+    if (-not (Test-Path -LiteralPath $ConfigPath)) {
+        New-Item -Path $ConfigPath -ItemType File -Force | Out-Null
+    }
+}
+
 function Repair-SshConfigPermissions {
     param(
         [Parameter(Mandatory = $true)]
@@ -572,9 +588,7 @@ function Repair-SshConfigPermissions {
     )
 
     try {
-        if (-not (Test-Path $ConfigPath)) {
-            New-Item -Path $ConfigPath -ItemType File -Force | Out-Null
-        }
+        Ensure-SshConfigFile -ConfigPath $ConfigPath
 
         $currentUser = [System.Security.Principal.NTAccount]::new("$env:USERDOMAIN\$env:USERNAME")
         $userSid = $currentUser.Translate([System.Security.Principal.SecurityIdentifier])
@@ -753,9 +767,7 @@ function New-HostEntry {
             }
 
             try {
-                if (-not (Test-Path $ConfigPath)) {
-                    New-Item -Path $ConfigPath -ItemType File -Force | Out-Null
-                }
+                Ensure-SshConfigFile -ConfigPath $ConfigPath
 
                 $entryLines = New-Object System.Collections.Generic.List[string]
                 $entryLines.Add("") | Out-Null
